@@ -1,2 +1,2 @@
 # PLT_Project
-PLT Project
+CRAFT: 2D Game Design
