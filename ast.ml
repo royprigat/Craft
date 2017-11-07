@@ -27,6 +27,8 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
 
+
+(* Functions *)
 type func_decl = {
     typ : typ;
     fname : string;
@@ -35,19 +37,29 @@ type func_decl = {
     body : stmt list;
   }
 
+(* Elements *)
 type elem_decl = {
     ename : string;
     body : stmt list;
   }
 
+(* Events *)
 type evnt_decl = {
-    ename : string;
+    evname : string;
     args : bind list;
     body : stmt list;
   }
 
+(* World/Game *)
+type world_decl = {
+    wname : string;
+    wmembers : var_decl list;
+    init_mem: var_decl list;
+    init_body : stmt list;
+  }
 
-type program = bind list * func_decl list
+(* Program *)
+type program = bind list * func_decl list * elem_decl list * evnt_decl list * world_decl
 
 (* Pretty-printing functions *)
 
