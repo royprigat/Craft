@@ -34,6 +34,13 @@ type func_decl = {
     body : stmt list;
   }
 
+type evnt_decl = {
+    ename : string;
+    args : bind list;
+    body : stmt list;
+  }
+
+
 type program = bind list * func_decl list
 
 (* Pretty-printing functions *)
