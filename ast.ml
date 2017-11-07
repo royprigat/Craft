@@ -35,6 +35,11 @@ type func_decl = {
     body : stmt list;
   }
 
+type elem_decl = {
+    ename : string;
+    body : stmt list;
+  }
+
 type evnt_decl = {
     ename : string;
     args : bind list;
