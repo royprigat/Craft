@@ -1,7 +1,6 @@
 (* CRAFT Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or  | Collision
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or | Coll
 
 type uop = Neg | Not
 
@@ -25,7 +24,6 @@ type stmt =
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
-  | For of expr * expr * expr * stmt
   | While of expr * stmt
 
 type func_decl = {
