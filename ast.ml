@@ -24,6 +24,7 @@ type stmt =
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
+  | Condition of stmt * stmt
   | While of expr * stmt
 
 type func_decl = {
@@ -86,6 +87,7 @@ let rec string_of_stmt = function
   | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | Condition(s1, s2) -> 
 
 let string_of_typ = function
     Int -> "int"
