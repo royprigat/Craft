@@ -1,16 +1,17 @@
-(* Abstract Syntax Tree and functions for printing it *)
+(* CRAFT Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or
+type op = Add | Sub | Mult | Div | Equal | Neq | 
+          Less | Leq | Greater | Geq | And | Or
 
 type uop = Neg | Not
 
-type typ = Int | Bool | Void
+type typ = Int | Float | Bool | Void
 
 type bind = typ * string
 
 type expr =
     Literal of int
+  | FLiteral of float
   | BoolLit of bool
   | Id of string
   | Binop of expr * op * expr
