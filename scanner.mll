@@ -6,7 +6,7 @@
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }  (* Whitespace *)
-  | '#''         { comment lexbuf }       (* Comments *)
+  | '#'         { comment lexbuf }       (* Comments *)
   | '('         { LPAREN }
   | ')'         { RPAREN }
   | '{'         { LBRACE }
@@ -32,7 +32,6 @@ rule token = parse
   | "if"        { IF }
   | "else"      { ELSE }
   | "while"     { WHILE }
-  | "return"    { RETURN }
   | "int"       { INT }
   | "float"     { FLOAT }
   | "bool"      { BOOL }
@@ -42,7 +41,6 @@ rule token = parse
   | "element"   { ELEMENT }
   | "world"     { WORLD}
   | "event"     { EVENT }
-  | "events"    { EVENTS }
   | "start"     { START }
   | "reset"     { RESET }
   | "def"       { DEF }
@@ -61,6 +59,9 @@ rule token = parse
   | "this"	    { THIS }
   | "bounce"    { BOUNCE }
   | "import"    { IMPORT }
+  | "key_up"    { KEY_UP }
+  | "key_down"  { KEY_DOWN }
+  | "key_id"    { KEY_ID }
   | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
   | ['0'-'9']*'.'['0'-'9']+ | ['0'-'9']+'.'['0'-'9']* as lxm { FLOAT_LITERAL(float_of_string lxm)}
   | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
