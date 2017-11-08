@@ -1,14 +1,16 @@
-/* Ocamlyacc parser for MicroC */
+/* Ocamlyacc parser for CRAFT */
 
-%{
-open Ast
-%}
+%{ open Ast %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID
-%token <int> LITERAL
+%token RETURN IF ELSE WHILE POINT COLLIDE
+%token INT FLOAT BOOL VOID
+%token EVENT FUNC ELEM WORLD
+
+%token <int> INT_LITERAL
+%token <float> FLOAT_LITERAL
 %token <string> ID
 %token EOF
 
@@ -19,9 +21,11 @@ open Ast
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
+%left COLLIDE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
+%left ACCESS
 
 %start program
 %type <Ast.program> program
@@ -29,7 +33,13 @@ open Ast
 %%
 
 program:
-  decls EOF { $1 }
+  elem_decl_list world EOF { ($1, $2) }
+
+p_typ:
+    INT   { Int }
+  | FLOAT { Float }
+  | BOOL  { Bool }
+  | VOID  { Void }
 
 decls:
    /* nothing */ { [], [] }
@@ -51,11 +61,6 @@ formals_opt:
 formal_list:
     typ ID                   { [($1,$2)] }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
-
-typ:
-    INT { Int }
-  | BOOL { Bool }
-  | VOID { Void }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -100,6 +105,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3) }
   | expr AND    expr { Binop($1, And,   $3) }
   | expr OR     expr { Binop($1, Or,    $3) }
+  | expr COLLIDE expr { Binop($1, Coll, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }
