@@ -23,11 +23,14 @@ let translate (globals, functions) =
   
   and i32_t  = L.i32_type  context (*32 bit int*)
   and i8_t   = L.i8_type   context (*8 bit pointer*)
-  and i1_t   = L.i1_type   context (*boolean*)
+  and i1_t   = L.i1_type   context (*1 bit int boolean*)
   and float_t = L.float_type context (*float*)
   and void_t = L.void_type context (*void*)
-  and clr_t = ???
-  and pair_t = ??? in
+  and pair_t = L.named_struct_type context "TBD: name of struct in c code"
+    L.struct_set_body pair_t [|i32_t; i32_t|] false; (*assuming pair struct consists of 2 ints*) (*false is the status of ispacked see documentation*)
+  and clr_t = L.named_struct_type context "TBD: name of struct in c code"
+    L.struct_set_body clr_t [|i32_t; i32_t; i32_t|] false; (*assuming clt struct consists of 3 ints*)
+  in
 
 
   let ltype_of_typ = function
@@ -35,8 +38,9 @@ let translate (globals, functions) =
     | A.Float -> float_t
     | A.Bool -> i1_t
     | A.Void -> void_t (*Do we want void type?*)
-    | A.Pair -> ???
-    | A.Color -> ??? in 
+    | A.Pair -> pait_t
+    | A.Color -> clr_t 
+  in 
  
 
 (*
