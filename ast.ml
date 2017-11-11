@@ -2,14 +2,16 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or | Coll
 type uop = Neg | Not
-type typ = Int | Float | Bool | Void
+type typ = Int | Float | Bool | Void | Pair | Color
 
 type bind = typ * string
 
 type expr =
-    Literal of int
-  | FLiteral of float
-  | BoolLit of bool
+    Lit of int
+  | FLit of float
+  | BLit of bool
+  | Pair of int * int
+  | Color of string
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -54,4 +56,4 @@ type world = {
   }
 
 (* Program *)
-type program = elem list * world
+type program = element list * world

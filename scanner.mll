@@ -39,6 +39,7 @@ rule token = parse
   | "true"      { TRUE }
   | "false"     { FALSE }
   | "element"   { ELEMENT }
+  | "elements"  { ELEMENTS }
   | "world"     { WORLD}
   | "event"     { EVENT }
   | "start"     { START }

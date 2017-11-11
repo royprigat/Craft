@@ -1,7 +1,13 @@
-element player {
-
+element wall {
+    size = (2,1);
+    direction = 0;
+    color = ffffff; # Black
 }
 
-world {
-    
+world { 
+    size = (50,50);
+
+    elements {
+        wall w = wall(4,4);    # Wall added at (4,4)
+    }
 }

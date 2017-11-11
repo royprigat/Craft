@@ -7,7 +7,8 @@
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token RETURN IF ELSE WHILE POINT COLLIDE
 %token INT FLOAT BOOL VOID
-%token EVENT FUNC ELEM WORLD
+%token SIZE DIR COLOR SPEED
+%token EVENT FUNC ELEM ELEMS WORLD
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -37,13 +38,16 @@ program:
   element_list world EOF { ($1, $2) }
 
 /* Primitive type */
-prim:
+primitive:
     INT   { Int }
   | FLOAT { Float }
   | BOOL  { Bool }
   | VOID  { Void }
 
-/* Elements list */
+/* Variable declaration */
+var_decl: 
+    primitive ID ASSIGN expr SEMI 	{ VarDec($1, $2, $4) }
+
 element_list: 
   { [] }
   | element_list element 	{ $2 :: $1 }
@@ -56,17 +60,23 @@ element:
       properties = List.rev $4 
     }}
 
+prop_list:
+	  { [] }
+    | prop_list property 	{ $2 :: $1 }
 
-
-
-
+property:
+		var_decl 								   { $1 }
+		| SIZE ASSIGN expr SEMI 	 { VarInit(Size, "size", $3) }
+		| DIR ASSIGN expr SEMI		 { VarInit(Direction, "dir", $3) } 
+		| COLOR ASSIGN expr SEMI 	 { VarInit(Color, "color", $3) } 
+    | SPEED ASSIGN expr SEMI   { VarInit(Speed, "speed", $3) } 
 
 /* World */
 world:
-		WORLD LBRACE property_list INIT DO LBRACE stmt_list RBRACE RBRACE 	
+		WORLD LBRACE prop_list ELEMS LBRACE stmt_list RBRACE RBRACE 	
 		{{
-			members = List.rev $4;
-			init = List.rev $8;
+      properties = List.rev $3;
+			elements = List.rev $6;
 		}}
 
 stmt_list: 
@@ -104,3 +114,8 @@ expr:
   | NOT expr  					    { Unop(Not, $2) }
   | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
   | LPAREN expr RPAREN 			{ $2 }
+  | member 						      { $1 }
+
+member:
+	ID  				        { $1 }
+	| ID PERIOD member  { Accs($1, $3) }
