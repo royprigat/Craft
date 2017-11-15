@@ -38,8 +38,8 @@ rule token = parse
   | "void"      { VOID }
   | "true"      { TRUE }
   | "false"     { FALSE }
-  | "element"   { ELEMENT }
-  | "elements"  { ELEMENTS }
+  | "element"   { ELEM }
+  | "elements"  { ELEMS }
   | "world"     { WORLD}
   | "event"     { EVENT }
   | "start"     { START }
@@ -55,7 +55,7 @@ rule token = parse
   | "delete"    { DELETE }
   | "speed"	    { SPEED }
   | "angle"	    { ANGLE }
-  | "direction"	{ DIRECT }
+  | "direction"	{ DIR }
   | "pos"	      { POS }
   | "this"	    { THIS }
   | "bounce"    { BOUNCE }
@@ -63,6 +63,7 @@ rule token = parse
   | "key_up"    { KEY_UP }
   | "key_down"  { KEY_DOWN }
   | "key_id"    { KEY_ID }
+  | "size"      { SIZE }
   | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
   | ['0'-'9']*'.'['0'-'9']+ | ['0'-'9']+'.'['0'-'9']* as lxm { FLOAT_LITERAL(float_of_string lxm)}
   | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
