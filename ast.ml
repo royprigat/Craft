@@ -1,22 +1,21 @@
-(* CRAFT Abstract Syntax Tree and functions for printing it *)
+(* CRAFT Abstract Syntax Tree *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or | Coll
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or
 type uop = Neg | Not
 type typ = Int | Float | Bool | Void | Pair | Color
 
-type bind = typ * string
-
 type expr =
-    Lit of int
-  | FLit of float
-  | BLit of bool
+    ILiteral of int
+  | FLiteral of float
+  | SLiteral of string
+  | BLiteral of bool
   | Pair of int * int
   | Color of string
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Asgn of string * expr
-  | Accs of string * string
+  | Assign of string * expr
+  | Access of string * string
   | Call of string * expr list
   | Noexpr
 
@@ -28,27 +27,7 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
 
-(* Functions *)
-(* type func_decl = {
-    typ : typ;
-    fname : string;
-    formals : typ * string list;
-    locals : typ * string list;
-    body : stmt list;
-  } *)
-
-(* Elements *)
-type element = {
-    name : string;
-    body : stmt list;
-  }
-
-(* Events *)
-(* type evnt_decl = {
-    evname : string;
-    args : bind list;
-    body : stmt list;
-  } *)
+type var_init = SetVar of typ * string * expr
 
 (* World *)
 type world = {
@@ -56,4 +35,4 @@ type world = {
   }
 
 (* Program *)
-type program = element list * world
+type program = world

@@ -2,16 +2,18 @@
 
 %{ open Ast %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
-%token RETURN IF ELSE WHILE PERIOD COLLIDE
-%token INT FLOAT BOOL VOID
-%token SIZE DIR COLOR SPEED
-%token EVENT DEF ELEM ELEMS WORLD
+%token LPAREN RPAREN LBRACE RBRACE SEMI COLON COMMA
+%token PLUS MINUS TIMES DIVIDE 
+%token ASSIGN EQ NEQ LT LEQ GT GEQ AND OR NOT
+%token PERIOD COLLIDE
+%token IF ELSE WHILE 
+%token INT FLOAT BOOL VOID TRUE FALSE
+%token SIZE DIRECT COLOR PAIR SPEED POS
+%token EVENT DEF ELEMENT WORLD
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
+%token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
 
@@ -35,55 +37,54 @@
 
 /* Entry point */
 program:
-  element_list world EOF { ($1, $2) }
+  world EOF { ($1) }
 
-/* Primitive type */
-primitive:
+/* Variable types */
+typ:
     INT   { Int }
   | FLOAT { Float }
   | BOOL  { Bool }
   | VOID  { Void }
+  | COLOR { Color }
+  | PAIR  { Pair }
 
-/* Variable declaration */
-var_decl: 
-    primitive ID ASSIGN expr SEMI 	{ VarDec($1, $2, $4) }
-
-element_list: 
-  { [] }
-  | element_list element 	{ $2 :: $1 }
+/* Initialize variable */
+var_init: 
+  typ ID ASSIGN expr SEMI 	{ SetVar($1, $2, $4) }
 
 /* Elements */
-element: 
-		ELEM ID LBRACE prop_list RBRACE
-    {{ 
-      name = $2;
-      properties = List.rev $4 
-    }}
+element_list: 
+  { [] } 
+  | element_list element 	{ $2 :: $1 }
 
+element: 
+	ELEM ID LBRACE prop_list RBRACE
+  {{ 
+    name = $2;
+    properties = List.rev $4 
+  }}
+
+/* Properties */
 prop_list:
-	  { [] }
-    | prop_list property 	{ $2 :: $1 }
+	{ [] }
+  | prop_list property 	{ $2 :: $1 }
 
 property:
-		var_decl 								   { $1 }
-		| SIZE ASSIGN expr SEMI 	 { VarInit(Size, "size", $3) }
-		| DIR ASSIGN expr SEMI		 { VarInit(Direction, "dir", $3) } 
-		| COLOR ASSIGN expr SEMI 	 { VarInit(Color, "color", $3) } 
-    | SPEED ASSIGN expr SEMI   { VarInit(Speed, "speed", $3) } 
+	| SIZE ASSIGN expr SEMI 	 { SetVar(Pair, "size", $3) }
+	| COLOR ASSIGN expr SEMI 	 { SetVar(Color, "color", $3) } 
 
 /* World */
 world:
-		WORLD LBRACE prop_list ELEMS LBRACE stmt_list RBRACE RBRACE 	
-		{{
-      properties = List.rev $3;
-			elements = List.rev $6;
-		}}
-
-stmt_list: 
-	    { [] }
-      | stmt_list stmt	{ $2 :: $1 }			
+	WORLD LBRACE prop_list ELEMS LBRACE stmt_list RBRACE RBRACE 	
+	{{
+    properties = List.rev $3;
+	}}
 
 /* Statements */
+stmt_list: 
+	{ [] }
+  | stmt_list stmt	{ $2 :: $1 }			
+
 stmt:
 	expr SEMI 									                { Expr $1 }
 	| RETURN expr SEMI 							            { Return $2 }
@@ -94,10 +95,11 @@ stmt:
   
 /* Expressions */
 expr: 
-	  INT_LITERAL 					  { Literal($1) }
+	  INT_LITERAL 					  { ILiteral($1) }
 	| FLOAT_LITERAL 				  { FLiteral($1) }
-	| TRUE							      { BoolLit(true) }
-	| FALSE							      { BoolLit(false) }
+  | STRING_LITERAL          { SLiteral($1) }
+	| TRUE							      { BLiteral(true) }
+	| FALSE							      { BLiteral(false) }
 	| expr PLUS expr          { Binop($1, Add, $3) }
   | expr MINUS expr         { Binop($1, Sub, $3) }
   | expr TIMES expr 				{ Binop($1, Mult, $3) }
@@ -110,12 +112,6 @@ expr:
   | expr GEQ expr 				  { Binop($1, Geq, $3) }
   | expr AND expr 				  { Binop($1, And, $3) }
   | expr OR expr 					  { Binop($1, Or, $3) }
-  | expr COLLIDE expr 			{ Binop($1, Coll, $3) }
   | NOT expr  					    { Unop(Not, $2) }
   | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
   | LPAREN expr RPAREN 			{ $2 }
-  | member 						      { $1 }
-
-member:
-	ID  				        { $1 }
-	| ID PERIOD member  { Accs($1, $3) }
