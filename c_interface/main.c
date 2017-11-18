@@ -113,43 +113,46 @@ int main( int argc, char* argv[] )
         //Event handler
         SDL_Event e;
 
-        while( SDL_PollEvent (&e) != 0 ){
+        bool quit = false;
 
-            //User requests quit
-            if( e.type == SDL_QUIT ){
-                close();
-            }
+        while(!quit){
 
-            //User presses a key
-            else if( e.type == SDL_KEYDOWN )
-            {
-                //Select surfaces based on key press
-                switch( e.key.keysym.sym )
+            while( SDL_PollEvent (&e) != 0 ){
+
+                //User requests quit
+                if( e.type == SDL_QUIT ){
+                    quit = true;
+                }
+
+                //User presses a key
+                else if( e.type == SDL_KEYDOWN )
                 {
-                    case SDLK_UP:
-                    printf("%s\n","UP" );
-                    break;
+                    //Select surfaces based on key press
+                    switch( e.key.keysym.sym )
+                    {
+                        case SDLK_UP:
+                        printf("%s\n","UP" );
+                        break;
 
-                    case SDLK_DOWN:
-                    printf("%s\n", "DOWN");
-                    break;
+                        case SDLK_DOWN:
+                        printf("%s\n", "DOWN");
+                        break;
 
-                    case SDLK_LEFT:
-                    printf("%s\n", "LEFT");
-                    break;
+                        case SDLK_LEFT:
+                        printf("%s\n", "LEFT");
+                        break;
 
-                    case SDLK_RIGHT:
-                    printf("%s\n", "RIGHT" );
-                    break;
+                        case SDLK_RIGHT:
+                        printf("%s\n", "RIGHT" );
+                        break;
 
-                    default:
-                    printf("%s\n", "DEFAULT" );
-                    break;
+                        default:
+                        printf("%s\n", "DEFAULT" );
+                        break;
+                    }
                 }
             }
-
         }
-
     }
 
     //Free resources and close SDL
