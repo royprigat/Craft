@@ -1,4 +1,4 @@
 world { 
     size = (50,50);
-    color = "ffffff";
+    color = "ffffff";    
 }

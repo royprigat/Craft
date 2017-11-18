@@ -1,5 +1,7 @@
 (* CRAFT Abstract Syntax Tree *)
 
+module StringMap = Map.Make(String)
+
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or
 type uop = Neg | Not
 type typ = Int | Float | Bool | Void | Pair | Color
@@ -31,7 +33,8 @@ type var_init = SetVar of typ * string * expr
 
 (* World *)
 type world = {
-    body : stmt list;
+    params: expr StringMap;
+    body: stmt list;
   }
 
 (* Program *)
