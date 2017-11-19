@@ -26,10 +26,6 @@ let translate (globals, functions) =
   and i1_t   = L.i1_type   context (*1 bit int boolean*)
   and float_t = L.float_type context (*float*)
   and void_t = L.void_type context (*void*)
-  and pair_t = L.named_struct_type context "TBD: name of struct in c code"
-    L.struct_set_body pair_t [|i32_t; i32_t|] false; (*assuming pair struct consists of 2 ints*) (*false is the status of ispacked see documentation*)
-  and clr_t = L.named_struct_type context "TBD: name of struct in c code"
-    L.struct_set_body clr_t [|i32_t; i32_t; i32_t|] false; (*assuming clt struct consists of 3 ints*)
   in
 
 
@@ -38,10 +34,11 @@ let translate (globals, functions) =
     | A.Float -> float_t
     | A.Bool -> i1_t
     | A.Void -> void_t (*Do we want void type?*)
-    | A.Pair -> pait_t
-    | A.Color -> clr_t 
+
   in 
- 
+
+
+ the_module
 
 (*
 

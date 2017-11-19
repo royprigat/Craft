@@ -1,5 +1,5 @@
 (* Semantic checking for the CRAFT compiler *)
-
+(*
 open Ast
 
 module E = Exceptions
@@ -86,3 +86,4 @@ let check (gboard) =
 
 (* Verify a statement or throw an exception *)
 
+*)

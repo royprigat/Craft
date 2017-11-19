@@ -6,7 +6,7 @@
 %token PLUS MINUS TIMES DIVIDE 
 %token ASSIGN EQ NEQ LT LEQ GT GEQ AND OR NOT
 %token PERIOD COLLIDE
-%token IF ELSE WHILE 
+%token IF ELSE WHILE RETURN
 %token INT FLOAT BOOL VOID TRUE FALSE
 %token SIZE DIRECT COLOR PAIR SPEED POS
 %token EVENT DEF ELEMENT WORLD
@@ -49,20 +49,20 @@ typ:
   | PAIR  { Pair }
 
 /* Initialize variable */
-var_init: 
+var_decl: 
   typ ID ASSIGN expr SEMI 	{ SetVar($1, $2, $4) }
 
 /* Elements */
-element_list: 
+/* element_list: 
   { [] } 
   | element_list element 	{ $2 :: $1 }
 
 element: 
-	ELEM ID LBRACE prop_list RBRACE
+	ELEMENT ID LBRACE prop_list RBRACE
   {{ 
     name = $2;
-    properties = List.rev $4 
-  }}
+    properties = List.rev $4; 
+  }} */
 
 /* Properties */
 prop_list:
@@ -70,14 +70,15 @@ prop_list:
   | prop_list property 	{ $2 :: $1 }
 
 property:
+    var_decl                 { $1 }
 	| SIZE ASSIGN expr SEMI 	 { SetVar(Pair, "size", $3) }
 	| COLOR ASSIGN expr SEMI 	 { SetVar(Color, "color", $3) } 
 
 /* World */
 world:
-	WORLD LBRACE prop_list ELEMS LBRACE stmt_list RBRACE RBRACE 	
+	WORLD LBRACE prop_list RBRACE 	
 	{{
-    properties = List.rev $3;
+    body = List.rev $3;
 	}}
 
 /* Statements */
@@ -115,3 +116,7 @@ expr:
   | NOT expr  					    { Unop(Not, $2) }
   | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
   | LPAREN expr RPAREN 			{ $2 }
+  | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
+  
+
+
