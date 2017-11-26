@@ -1,6 +1,7 @@
 #include "SDL2/SDL.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <glib.h>
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //Screen dimension constants
@@ -25,8 +26,33 @@ SDL_Surface* gScreenSurface = NULL;
 //The image we will load and show on the screen
 SDL_Surface* gHelloWorld = NULL;
 
+struct tuple{
+    int left;
+    int right;
+};
+
+struct color{
+    int r;
+    int g;
+    int b;
+};
+
+struct element{
+    struct tuple size;
+    struct tuple position;
+    struct color el_color;
+    int direction;
+    float speed;
+};
+
+struct world{
+    struct color back_color;
+};
+
+
 bool init()
-{
+{   
+    GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
     //Initialization flag
     bool success = true;
 
