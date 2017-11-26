@@ -11,12 +11,12 @@ type expr =
   | FLiteral of float
   | SLiteral of string
   | BLiteral of bool
-  | Pair of int * int
+  | Pair of expr * expr
   | Color of string
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
+  | Assign of expr * expr
   | Access of string * string
   | Call of string * expr list
   | Noexpr
@@ -29,13 +29,12 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
 
-type var_init = SetVar of typ * string * expr
+type var_decl = SetVar of typ * string * expr
 
 (* World *)
 type world = {
-    params: expr StringMap;
-    body: stmt list;
-  }
+  body: var_decl list;
+}
 
 (* Program *)
 type program = world
@@ -44,6 +43,14 @@ type program = world
 
 
 (* AST Print functions *)
+
+let string_of_typ = function
+  Int -> "int"
+| Float -> "float"
+| Bool -> "bool"
+| Void -> "void"
+| Pair -> "pair"
+| Color -> "color"
 
 let string_of_op = function
   Add -> "+"
@@ -63,50 +70,30 @@ let string_of_uop = function
   Neg -> "-"
 | Not -> "!"
 
+
 let rec string_of_expr = function
   ILiteral(l) -> string_of_int l
 | FLiteral(l) -> string_of_float l
-| BoolLit(true) -> "true"
-| BoolLit(false) -> "false"
+| BLiteral(true) -> "true"
+| BLiteral(false) -> "false"
+| SLiteral(s) -> s
+| Pair(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
+| Color(c) -> c
 | Id(s) -> s
 | Binop(e1, o, e2) ->
   string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
 | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-| Assign(v, e) -> v ^ " = " ^ string_of_expr e
+| Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | Noexpr -> ""
 
-let rec string_of_stmt = function
-  Block(stmts) ->
-  "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-| Expr(expr) -> string_of_expr expr ^ ";\n";
-| Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
-| If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
-| If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
-  string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-| For(e1, e2, e3, s) ->
-  "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-  string_of_expr e3  ^ ") " ^ string_of_stmt s
-| While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
-let string_of_typ = function
-  Int -> "int"
-| Float -> "float"
-| Bool -> "bool"
-| Void -> "void"
-| Pair -> "pair"
-| Color -> "color"
+let string_of_vars = function  
+  SetVar(t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+let string_of_world this_world =
+  List.map string_of_vars this_world.body
 
-(* let string_of_fdecl fdecl =
-string_of_typ fdecl.typ ^ " " ^
-fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
-")\n{\n" ^
-String.concat "" (List.map string_of_vdecl fdecl.locals) ^
-String.concat "" (List.map string_of_stmt fdecl.body) ^
-"}\n" *)
-
-let string_of_program (vars) =
-String.concat "" (List.map string_of_vdecl vars) ^ "\n"
+let string_of_program (world) =
+  String.concat "" (string_of_world world)

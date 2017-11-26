@@ -57,9 +57,9 @@ rule token = parse
   | "pos"	      { POS }
 
   (* I/O Keywords *)
-  | "key_up"    { KEY_UP }
+  (* | "key_up"    { KEY_UP }
   | "key_down"  { KEY_DOWN }
-  | "key_id"    { KEY_ID }
+  | "key_id"    { KEY_ID } *)
 
 
   | ['0'-'9']+ as lxm                                        { INT_LITERAL(int_of_string lxm) }
