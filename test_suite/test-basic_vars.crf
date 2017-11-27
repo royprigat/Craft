@@ -1,0 +1,8 @@
+world {
+  size = (100,100);
+  int x = 5;
+  color = "ffffff";
+  float a = 3.4;
+  bool t = true;
+
+}
