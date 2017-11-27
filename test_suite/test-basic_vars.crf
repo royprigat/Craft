@@ -4,5 +4,4 @@ world {
   color = "ffffff";
   float a = 3.4;
   bool t = true;
-
 }
