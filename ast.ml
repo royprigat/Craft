@@ -5,6 +5,7 @@ module StringMap = Map.Make(String)
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or
 type uop = Neg | Not
 type typ = Int | Float | Bool | Void | Pair | Color
+type bind = typ * string
 
 type expr =
     ILiteral of int
@@ -29,7 +30,14 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
 
-type var_decl = SetVar of typ * string * expr
+type var_decl =  typ * string * expr
+
+type func_decl = {
+	fname : string;
+	formals : bind list;
+	locals : var_decl list;
+	body : stmt list;
+}
 
 (* World *)
 type world = {
@@ -89,8 +97,31 @@ let rec string_of_expr = function
 | Noexpr -> ""
 
 
-let string_of_vars = function  
-  SetVar(t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
+let rec string_of_stmt = function
+    Block(stmts) ->
+      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+  | Expr(expr) -> string_of_expr expr ^ ";\n";
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
+  | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
+  | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
+      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+  (* | For(e1, e2, e3, s) ->
+      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
+      string_of_expr e3  ^ ") " ^ string_of_stmt s *)
+  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+
+
+let string_of_vars = function
+  (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
+
+let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+
+let string_of_fdecl fdecl =
+  "\ndef " ^ " " ^ fdecl.fname ^ "(" ^ String.concat ", "
+  (List.map string_of_args fdecl.formals) ^ ")\n{\n" ^
+  String.concat "" (List.map string_of_vars fdecl.locals) ^
+  String.concat "" (List.map string_of_stmt fdecl.body) ^
+  "}\n"
 
 let string_of_world this_world =
   List.map string_of_vars this_world.body

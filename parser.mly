@@ -3,7 +3,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LBRACE RBRACE SEMI COLON COMMA
-%token PLUS MINUS TIMES DIVIDE 
+%token PLUS MINUS TIMES DIVIDE
 %token ASSIGN EQ NEQ LT LEQ GT GEQ AND OR NOT
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
@@ -48,43 +48,69 @@ typ:
   | COLOR { Color }
   | PAIR  { Pair }
 
-/* Initialize variable */
-var_decl: 
-  typ ID ASSIGN expr SEMI 	{ SetVar($1, $2, $4) }
+/* Variable Declaration List */
+var_decl_list:             	{ [] }
+| var_decl_list var_decl 		{ $2 :: $1 }
+
+/* Declare variable */
+var_decl:
+  typ ID ASSIGN expr SEMI 	{ ($1, $2, $4) }
+/*| typ ID SEMI { ($1, $2) }*/
+
+/* Function Declaration List */
+func_decl_list:                   { [] }
+| func_decl_list func_decl 				{ $2 :: $1 }
+
+/* Declare a Function */
+func_decl:
+  DEF ID LPAREN fargs_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
+  {
+    {    (* return type?*)
+      fname = $2;
+			formals = $4;
+			locals = List.rev $7;
+      body = List.rev $8;
+    }
+  }
+
+fargs_list_opt:           { [] }
+| fargs_list              { List.rev $1 }
+
+fargs_list:
+  typ ID                   { [($1,$2)] }
+| fargs_list COMMA typ ID { ($3,$4) :: $1 }
 
 /* Elements */
-/* element_list: 
-  { [] } 
+/* element_list:
+  { [] }
   | element_list element 	{ $2 :: $1 }
 
-element: 
+element:
 	ELEMENT ID LBRACE prop_list RBRACE
-  {{ 
+  {{
     name = $2;
-    properties = List.rev $4; 
+    properties = List.rev $4;
   }} */
 
 /* Properties */
-prop_list:
-	{ [] }
-  | prop_list property 	{ $2 :: $1 }
+prop_list:            { [] }
+| prop_list property 	{ $2 :: $1 }
 
 property:
     var_decl                 { $1 }
-	| SIZE ASSIGN expr SEMI 	 { SetVar(Pair, "size", $3) }
-	| COLOR ASSIGN expr SEMI 	 { SetVar(Color, "color", $3) } 
+	| SIZE ASSIGN expr SEMI 	 { (Pair, "size", $3) }
+	| COLOR ASSIGN expr SEMI 	 { (Color, "color", $3) }
 
 /* World */
 world:
-	WORLD LBRACE prop_list RBRACE 	
+	WORLD LBRACE prop_list RBRACE
 	{{
     body = List.rev $3;
 	}}
 
 /* Statements */
-stmt_list: 
-	{ [] }
-  | stmt_list stmt	{ $2 :: $1 }			
+stmt_list:        { [] }
+| stmt_list stmt	{ $2 :: $1 }
 
 stmt:
 	expr SEMI 									                { Expr $1 }
@@ -93,9 +119,9 @@ stmt:
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt 		  { If($3, $5, $7) }
 	| WHILE LPAREN expr RPAREN stmt 			      { While($3, $5)}
-  
+
 /* Expressions */
-expr: 
+expr:
 	  INT_LITERAL 					  { ILiteral($1) }
 	| FLOAT_LITERAL 				  { FLiteral($1) }
   | STRING_LITERAL          { SLiteral($1) }
@@ -117,6 +143,3 @@ expr:
   | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
   | LPAREN expr RPAREN 			{ $2 }
   | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
-  
-
-

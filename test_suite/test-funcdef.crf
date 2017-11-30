@@ -1,0 +1,10 @@
+world
+{
+
+def foo(int x, float y)
+{
+  int w = 5;
+  color = "ffffff";
+}
+
+}
