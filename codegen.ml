@@ -27,6 +27,14 @@ let translate (world) =
   and float_t = L.float_type context (*float*)
   and void_t = L.void_type context (*void*)
   in
+  
+  let pair_t = L.named_struct_type context "pair" in 
+    L.struct_set_body pair_t [|i32_t; i32_t|] false;
+  let color_t = L.named_struct_type context "color" in 
+    L.struct_set_body color_t [|i32_t; i32_t; i32_t|] false;
+  let world_t = L.named_struct_type context "world" in (*world struct*)
+    L.struct_set_body world_t [|color_t; pair_t|] false;
+  
 
 
 (*general note: when declaring structs the naming does not have to match name in c code*)
@@ -36,20 +44,28 @@ let translate (world) =
     | A.Float -> float_t
     | A.Bool -> i1_t
     | A.Void -> void_t (*Do we want void type?*)
-
+    | A.Pair -> pair_t
+    (* need pair here...? *)
   in 
+
+
+  (* I don't think we want global variables? Meaning we are not putting any variables outisde the "world" *)
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
   (* Declare the world() function *)
-  let world_func_t = L.function_type void_t [||] in
+  let world_func_t = L.function_type void_t [|L.pointer_type world_t|] in
   let world_func = L.declare_function "world" world_func_t the_module in (*name has to match function name in c code*)
 
   (*Using this to make a main function since we haven't defined one and it's needed to gcc compilation*)
   let main_func_type = L.function_type i32_t [||] in 
   let main_func = L.define_function "main" main_func_type the_module in
+
+
+
+
 
 
 
@@ -68,7 +84,7 @@ let translate (world) =
       A.Add     -> L.build_add
     | A.Sub     -> L.build_sub
     | A.Mult    -> L.build_mul
-          | A.Div     -> L.build_sdiv
+    | A.Div     -> L.build_sdiv
     | A.And     -> L.build_and
     | A.Or      -> L.build_or
     | A.Equal   -> L.build_icmp L.Icmp.Eq
@@ -78,16 +94,72 @@ let translate (world) =
     | A.Greater -> L.build_icmp L.Icmp.Sgt
     | A.Geq     -> L.build_icmp L.Icmp.Sge
     ) e1' e2' "tmp" builder
-    (* | A.Call ("world", [e]) ->
-    L.build_call world_func [||] "world" builder *)
-  in
+    (* | A.Pair (x,y) ->  *)
 
+    in
+
+    let var_decl_list = world.A.body in
+
+    (* let world_props =
+      let world_prop m (t,s,e) =  
+        StringMap.add s e m in
+      List.fold_left world_prop StringMap.empty var_decl_list in *)
+
+
+  
+
+ 
+
+
+
+
+
+
+
+  (* let vars = function 
+    A.SetVar(t,s,e) -> L.const_int i32_t e in *)
+
+
+  
+  (* let d_type A.SetVar(t,n,e) = function -> ltype_of_typ(t) in *)
+  (* let d_name = A.SetVAr(t,n,e) -> n in *)
+  (* let d_expr = A.SetVar(t,n,e) -> L.const_int i32_t 300 in *)
 
 
   (*Need to make a main function since it's required for the c compilation *)
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
-  ignore (L.build_call world_func [||] "" main_func_builder); (*Hard coded the calling of world c function*)
-  ignore (L.build_ret (L.const_int i32_t 0) main_func_builder); (*hard coding return 0 since main needs to return an int*)
+  
+    (* Create a pair struct which will have the screen size hard coded *)
+    (* let pair_ptr = L.build_alloca pair_t "test_pair" main_func_builder in *)
+    
+
+    let local_pair = L.const_named_struct pair_t [|L.const_int i32_t 1000; L.const_int i32_t 400|] in
+      (* let local_pair = L.const_named_struct pair_t [|L.const_int i32_t d_expr; L.const_int i32_t d_expr|] in *)
+
+      
+
+       (*   
+          let int_test1 = L.const_int i32_t 1000 in
+          let left_ptr = L.build_struct_gep pair_ptr 0 "left" main_func_builder in
+            ignore (L.build_store int_test1 left_ptr main_func_builder);
+
+          let int_test2 = L.const_int i32_t 500 in
+          let right_ptr = L.build_struct_gep pair_ptr 1 "right" main_func_builder in
+             ignore (L.build_store int_test2 right_ptr main_func_builder); *)
+
+
+    (* Create a world struct and point to the pait struct which will be the screen size *)
+    let world_ptr = L.build_alloca world_t "test_world" main_func_builder in
+       let world_size_ptr = L.build_struct_gep world_ptr 1 "test_size_member" main_func_builder in
+        ignore(L.build_store local_pair world_size_ptr main_func_builder);
+
+
+  
+        L.build_load world_ptr "test_struct" main_func_builder;
+
+
+        ignore (L.build_call world_func [|world_ptr|] "" main_func_builder); (*Hard coded the calling of world c function*)
+        ignore (L.build_ret (L.const_int i32_t 0) main_func_builder); (*hard coding return 0 since main needs to return an int*)
 
 
  the_module
