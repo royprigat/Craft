@@ -31,14 +31,19 @@ type stmt =
 
 type var_decl = SetVar of typ * string * expr
 
+(* Elements *)
+type element = {
+	name: string;
+	properties: var_decl list;
+}
+
 (* World *)
 type world = {
-  body: var_decl list;
+  properties: var_decl list;
 }
 
 (* Program *)
-type program = world
-
+type program = element list * world
 
 
 
@@ -70,7 +75,6 @@ let string_of_uop = function
   Neg -> "-"
 | Not -> "!"
 
-
 let rec string_of_expr = function
   ILiteral(l) -> string_of_int l
 | FLiteral(l) -> string_of_float l
@@ -92,8 +96,17 @@ let rec string_of_expr = function
 let string_of_vars = function  
   SetVar(t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
-let string_of_world this_world =
-  List.map string_of_vars this_world.body
+let string_of_elems elem = 
+  "\nelement " ^ elem.name ^ " " ^
+  "{\n " ^
+  String.concat " " (List.map string_of_vars elem.properties) ^ 
+  "}\n"
 
-let string_of_program (world) =
-  String.concat "" (string_of_world world)
+let string_of_world this_world =
+  "\nworld {\n " ^
+  String.concat " " (List.map string_of_vars this_world.properties) ^
+  "}\n"
+
+let string_of_program (elems,world) =
+  String.concat " " (List.map string_of_elems elems) ^
+  string_of_world world

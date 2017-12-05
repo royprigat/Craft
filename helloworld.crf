@@ -1,5 +1,13 @@
+element player {
+    size = (1,1);
+    color = "aaaaaa";
+}
+
 world { 
     size = (100,100);
     color = "ffffff";
-    float a = 3.4;
+
+    elements:
+        player roy = new player(2,3);
+        player martin = new player(2,3);
 }

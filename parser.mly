@@ -8,8 +8,8 @@
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
 %token INT FLOAT BOOL VOID TRUE FALSE
-%token SIZE DIRECT COLOR PAIR SPEED POS
-%token EVENT DEF ELEMENT WORLD
+%token SIZE DIRECT COLOR PAIR SPEED POS NEW
+%token EVENT DEF ELEMENT ELEMENTS WORLD
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -37,7 +37,7 @@
 
 /* Entry point */
 program:
-  world EOF { ($1) }
+  element_list world EOF { (List.rev $1, $2) }
 
 /* Variable types */
 typ:
@@ -52,18 +52,6 @@ typ:
 var_decl: 
   typ ID ASSIGN expr SEMI 	{ SetVar($1, $2, $4) }
 
-/* Elements */
-/* element_list: 
-  { [] } 
-  | element_list element 	{ $2 :: $1 }
-
-element: 
-	ELEMENT ID LBRACE prop_list RBRACE
-  {{ 
-    name = $2;
-    properties = List.rev $4; 
-  }} */
-
 /* Properties */
 prop_list:
 	{ [] }
@@ -74,13 +62,26 @@ property:
 	| SIZE ASSIGN expr SEMI 	 { SetVar(Pair, "size", $3) }
 	| COLOR ASSIGN expr SEMI 	 { SetVar(Color, "color", $3) } 
 
+/* Elements */
+element_list: 
+  { [] } 
+  | element_list element 	{ $2 :: $1 }
+
+element: 
+	ELEMENT ID LBRACE prop_list RBRACE
+  {{ 
+    name = $2;
+    properties = List.rev $4; 
+  }}
+
 /* World */
 world:
-	WORLD LBRACE prop_list RBRACE 	
+	WORLD LBRACE prop_list ELEMENTS COLON prop_list RBRACE 	
 	{{
-    body = List.rev $3;
+    properties = List.rev $3;
+    elements = List.rev $6
 	}}
-
+3
 /* Statements */
 stmt_list: 
 	{ [] }
@@ -96,26 +97,26 @@ stmt:
   
 /* Expressions */
 expr: 
-	  INT_LITERAL 					  { ILiteral($1) }
-	| FLOAT_LITERAL 				  { FLiteral($1) }
-  | STRING_LITERAL          { SLiteral($1) }
-	| TRUE							      { BLiteral(true) }
-	| FALSE							      { BLiteral(false) }
-	| expr PLUS expr          { Binop($1, Add, $3) }
-  | expr MINUS expr         { Binop($1, Sub, $3) }
-  | expr TIMES expr 				{ Binop($1, Mult, $3) }
-  | expr DIVIDE expr 				{ Binop($1, Div, $3) }
-  | expr EQ expr 					  { Binop($1, Equal, $3) }
-  | expr NEQ expr 				  { Binop($1, Neq, $3) }
-  | expr LT expr  			 	  { Binop($1, Less, $3) }
-  | expr LEQ expr  				  { Binop($1, Leq, $3) }
-  | expr GT expr 					  { Binop($1, Greater, $3) }
-  | expr GEQ expr 				  { Binop($1, Geq, $3) }
-  | expr AND expr 				  { Binop($1, And, $3) }
-  | expr OR expr 					  { Binop($1, Or, $3) }
-  | NOT expr  					    { Unop(Not, $2) }
-  | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
-  | LPAREN expr RPAREN 			{ $2 }
+	  INT_LITERAL 					        { ILiteral($1) }
+	| FLOAT_LITERAL 				        { FLiteral($1) }
+  | STRING_LITERAL                { SLiteral($1) }
+	| TRUE							            { BLiteral(true) }
+	| FALSE							            { BLiteral(false) }
+	| expr PLUS expr                { Binop($1, Add, $3) }
+  | expr MINUS expr               { Binop($1, Sub, $3) }
+  | expr TIMES expr 				      { Binop($1, Mult, $3) }
+  | expr DIVIDE expr 				      { Binop($1, Div, $3) }
+  | expr EQ expr 					        { Binop($1, Equal, $3) }
+  | expr NEQ expr 				        { Binop($1, Neq, $3) }
+  | expr LT expr  			 	        { Binop($1, Less, $3) }
+  | expr LEQ expr  				        { Binop($1, Leq, $3) }
+  | expr GT expr 					        { Binop($1, Greater, $3) }
+  | expr GEQ expr 				        { Binop($1, Geq, $3) }
+  | expr AND expr 				        { Binop($1, And, $3) }
+  | expr OR expr 					        { Binop($1, Or, $3) }
+  | NOT expr  					          { Unop(Not, $2) }
+  | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
+  | LPAREN expr RPAREN 			      { $2 }
   | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
   
 
