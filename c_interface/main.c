@@ -1,52 +1,50 @@
 #include "SDL2/SDL.h"
+#include "main.h"
 #include <stdio.h>
-#include <stdbool.h>
 #include <glib.h>
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
+//REF: https://wiki.libsdl.org
+//REF: http://gamedevgeek.com/tutorials/moving-sprites-with-sdl/
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
 
-//Starts up SDL and creates window
-bool init();
-
-//Loads media
-bool loadMedia();
-
-//Frees media and shuts down SDL
-void close();
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
     
 //The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
+SDL_Surface *gScreenSurface = NULL;
+// SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
-SDL_Surface* gHelloWorld = NULL;
+// SDL_Surface* gHelloWorld = NULL;
 
-struct tuple{
-    int left;
-    int right;
-};
+// SDL_Renderer* renderer = NULL;
 
-struct color{
-    int r;
-    int g;
-    int b;
-};
+void render_element(){
 
-struct element{
-    struct tuple size;
-    struct tuple position;
-    struct color el_color;
-    int direction;
-    float speed;
-};
+    printf( "Reached render" );
+    // SDL_FreeSurface(player);
 
-struct world{
-    struct color back_color;
+
+    // SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+
+    // // Clear winow
+    // SDL_RenderClear( renderer );
+    // SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+    SDL_Rect r;
+    r.x = 50;
+    r.y = 50;
+    r.w = 50;
+    r.h = 50;
+
+    // Render rect
+    // SDL_RenderFillRect( renderer, &r );
+
+    // // Render the rect to the screen
+    // SDL_RenderPresent(renderer);
+    // SDL_Delay(3000);
+    SDL_FillRect(gScreenSurface, &r, SDL_MapRGB(gScreenSurface->format, 255, 0, 0));
 };
 
 
@@ -66,6 +64,7 @@ bool init()
     {
         //Create window
         gWindow = SDL_CreateWindow( "Sandbox", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        // gWindow = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
         if( gWindow == NULL )
         {
             printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
@@ -75,6 +74,9 @@ bool init()
         {
             //Get window surface
             gScreenSurface = SDL_GetWindowSurface( gWindow );
+            // renderer =  SDL_CreateRenderer( gWindow, -1, 0);
+            // SDL_RenderSetLogicalSize( renderer, SCREEN_WIDTH, SCREEN_HEIGHT );
+            render_element();
         }
     }
 
@@ -87,21 +89,21 @@ bool loadMedia()
     bool success = true;
 
     //Load splash image
-    gHelloWorld = SDL_LoadBMP( "hello_world.bmp" );
-    if( gHelloWorld == NULL )
-    {
-        printf( "Unable to load image %s! SDL Error: %s\n", "02_getting_an_image_on_the_screen/hello_world.bmp", SDL_GetError() );
-        success = false;
-    }
+    // gHelloWorld = SDL_LoadBMP( "hello_world.bmp" );
+    // if( gHelloWorld == NULL )
+    // {
+    //     printf( "Unable to load image %s! SDL Error: %s\n", "02_getting_an_image_on_the_screen/hello_world.bmp", SDL_GetError() );
+    //     success = false;
+    // }
 
     return success;
 }
 
 void close()
 {
-    //Deallocate surface
-    SDL_FreeSurface( gHelloWorld );
-    gHelloWorld = NULL;
+    // //Deallocate surface
+    // SDL_FreeSurface( gHelloWorld );
+    // gHelloWorld = NULL;
 
     //Destroy window
     SDL_DestroyWindow( gWindow );
@@ -128,10 +130,10 @@ int main( int argc, char* argv[] )
         else
         {
             //Apply the image
-            SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
+            // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
             
             //Update the surface
-            SDL_UpdateWindowSurface( gWindow );
+            // SDL_UpdateWindowSurface( gWindow );
 
             //Wait two seconds
             SDL_Delay( 2000 );
