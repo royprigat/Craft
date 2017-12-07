@@ -66,6 +66,23 @@ let translate (world) =
 
 
 
+  let var_map vdecl = 
+
+      let builder = L.builder_at_end context (L.entry_block vdecl ) in
+
+  let add_var m (t,s,e) =
+    let var = L.build.build_alloca (ltype_of_typ t) (expr builder e) builder
+  in StringMap.add (expr builder e) var m 
+  in 
+  List.iter add_var StringMap.empty world.body;
+
+
+
+
+
+
+
+
 
 
 

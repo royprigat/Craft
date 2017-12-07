@@ -29,7 +29,7 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
 
-type var_decl = SetVar of typ * string * expr
+type var_decl = typ * string * expr
 
 (* World *)
 type world = {
@@ -90,7 +90,7 @@ let rec string_of_expr = function
 
 
 let string_of_vars = function  
-  SetVar(t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
+  (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_world this_world =
   List.map string_of_vars this_world.body

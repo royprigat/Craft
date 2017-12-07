@@ -50,7 +50,7 @@ typ:
 
 /* Initialize variable */
 var_decl: 
-  typ ID ASSIGN expr SEMI 	{ SetVar($1, $2, $4) }
+  typ ID ASSIGN expr SEMI 	{ ($1, $2, $4) }
 
 /* Elements */
 /* element_list: 
@@ -71,8 +71,8 @@ prop_list:
 
 property:
     var_decl                 { $1 }
-	| SIZE ASSIGN expr SEMI 	 { SetVar(Pair, "size", $3) }
-	| COLOR ASSIGN expr SEMI 	 { SetVar(Color, "color", $3) } 
+	| SIZE ASSIGN expr SEMI 	 { (Pair, "size", $3) }
+	| COLOR ASSIGN expr SEMI 	 { (Color, "color", $3) } 
 
 /* World */
 world:
