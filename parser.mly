@@ -9,7 +9,7 @@
 %token IF ELSE WHILE RETURN
 %token INT FLOAT BOOL VOID TRUE FALSE
 %token SIZE DIRECT COLOR PAIR SPEED POS NEW
-%token EVENT DEF ELEMENT ELEMENTS WORLD
+%token EVENT DEF PROPS ELEMENT ELEMENTS WORLD START
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -39,7 +39,7 @@
 program:
   element_list world EOF { (List.rev $1, $2) }
 
-/* Variable types */
+/* Primitive types */
 typ:
     INT   { Int }
   | FLOAT { Float }
@@ -48,53 +48,45 @@ typ:
   | COLOR { Color }
   | PAIR  { Pair }
 
-/* Variable Declaration List */
-var_decl_list:             	{ [] }
-| var_decl_list var_decl 		{ $2 :: $1 }
+/* Variables*/
+var_decl_list:             	  
+  { [] }
+  | var_decl_list var_decl 		{ $2 :: $1 }
 
-/* Declare variable */
 var_decl:
-  typ ID ASSIGN expr SEMI 	{ ($1, $2, $4) }
-/*| typ ID SEMI { ($1, $2) }*/
+  typ ID ASSIGN expr SEMI 	  { ($1, $2, $4) }
 
-/* Function Declaration List */
-func_decl_list:                   { [] }
-| func_decl_list func_decl 				{ $2 :: $1 }
+/* Element declaration */
+element_decl:
+  ELEMENT ID ID ASSIGN NEW ID expr SEMI { New($2,$3,$6,$7) }
 
-/* Declare a Function */
+/* Functions */
+func_decl_list:                   
+  { [] }
+  | func_decl_list func_decl 	{ $2 :: $1 }
+
 func_decl:
-  DEF ID LPAREN fargs_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
-  {
-    {    (* return type?*)
+  DEF ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
+  {{
       fname = $2;
 			formals = $4;
 			locals = List.rev $7;
       body = List.rev $8;
-    }
-  }
+  }}
 
-fargs_list_opt:           { [] }
-| fargs_list              { List.rev $1 }
-
-fargs_list:
-  typ ID                   { [($1,$2)] }
-| fargs_list COMMA typ ID { ($3,$4) :: $1 }
-
-/* Elements */
-/* element_list:
+/* Function arguments */
+formals_list_opt:             
   { [] }
-  | element_list element 	{ $2 :: $1 }
+  | formals_list               { List.rev $1 }
 
-element:
-	ELEMENT ID LBRACE prop_list RBRACE
-  {{
-    name = $2;
-    properties = List.rev $4;
-  }} */
+formals_list:
+    typ ID                     { [($1,$2)] }
+  | formals_list COMMA typ ID  { ($3,$4) :: $1 }
 
 /* Properties */
-prop_list:            { [] }
-| prop_list property 	{ $2 :: $1 }
+property_list:            
+  { [] }
+  | property_list property 	       { $2 :: $1 }
 
 property:
     var_decl                 { $1 }
@@ -107,26 +99,27 @@ element_list:
   | element_list element 	{ $2 :: $1 }
 
 element: 
-	ELEMENT ID LBRACE prop_list RBRACE
+	ELEMENT ID LBRACE property_list RBRACE
   {{ 
-    name = $2;
+    ename = $2;
     properties = List.rev $4; 
   }}
 
 /* World */
 world:
-	WORLD LBRACE prop_list RBRACE
+	WORLD LBRACE PROPS LBRACE property_list RBRACE stmt_list RBRACE   
 	{{
-    properties = List.rev $3;
-    elements = List.rev $6
+    properties = List.rev $5;
+    init = List.rev $7;
 	}}
-3
+
 /* Statements */
-stmt_list:        { [] }
-| stmt_list stmt	{ $2 :: $1 }
+stmt_list:          { [] }
+  | stmt_list stmt	{ $2 :: $1 }
 
 stmt:
-	expr SEMI 									                { Expr $1 }
+	  expr SEMI 									              { Expr $1 }
+  | element_decl                              { $1 }
 	| RETURN expr SEMI 							            { Return $2 }
 	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
@@ -135,24 +128,25 @@ stmt:
 
 /* Expressions */
 expr:
-	  INT_LITERAL 					  { ILiteral($1) }
-	| FLOAT_LITERAL 				  { FLiteral($1) }
-  | STRING_LITERAL          { SLiteral($1) }
-	| TRUE							      { BLiteral(true) }
-	| FALSE							      { BLiteral(false) }
-	| expr PLUS expr          { Binop($1, Add, $3) }
-  | expr MINUS expr         { Binop($1, Sub, $3) }
-  | expr TIMES expr 				{ Binop($1, Mult, $3) }
-  | expr DIVIDE expr 				{ Binop($1, Div, $3) }
-  | expr EQ expr 					  { Binop($1, Equal, $3) }
-  | expr NEQ expr 				  { Binop($1, Neq, $3) }
-  | expr LT expr  			 	  { Binop($1, Less, $3) }
-  | expr LEQ expr  				  { Binop($1, Leq, $3) }
-  | expr GT expr 					  { Binop($1, Greater, $3) }
-  | expr GEQ expr 				  { Binop($1, Geq, $3) }
-  | expr AND expr 				  { Binop($1, And, $3) }
-  | expr OR expr 					  { Binop($1, Or, $3) }
-  | NOT expr  					    { Unop(Not, $2) }
-  | MINUS expr %prec NEG 		{ Unop(Neg, $2) }
-  | LPAREN expr RPAREN 			{ $2 }
+	  INT_LITERAL 					        { ILiteral($1) }
+	| FLOAT_LITERAL 				        { FLiteral($1) }
+  | STRING_LITERAL                { SLiteral($1) }
+	| TRUE							            { BLiteral(true) }
+	| FALSE							            { BLiteral(false) }
+	| expr PLUS expr                { Binop($1, Add, $3) }
+  | expr MINUS expr               { Binop($1, Sub, $3) }
+  | expr TIMES expr 				      { Binop($1, Mult, $3) }
+  | expr DIVIDE expr 				      { Binop($1, Div, $3) }
+  | expr EQ expr 					        { Binop($1, Equal, $3) }
+  | expr NEQ expr 				        { Binop($1, Neq, $3) }
+  | expr LT expr  			 	        { Binop($1, Less, $3) }
+  | expr LEQ expr  				        { Binop($1, Leq, $3) }
+  | expr GT expr 					        { Binop($1, Greater, $3) }
+  | expr GEQ expr 				        { Binop($1, Geq, $3) }
+  | expr AND expr 				        { Binop($1, And, $3) }
+  | expr OR expr 					        { Binop($1, Or, $3) }
+  | NOT expr  					          { Unop(Not, $2) }
+  | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
+  | LPAREN expr RPAREN 			      { $2 }
   | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
+
