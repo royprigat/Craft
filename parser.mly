@@ -58,7 +58,7 @@ var_decl:
 
 /* Element declaration */
 element_decl:
-  ELEMENT ID ID ASSIGN NEW ID expr SEMI { New($2,$3,$6,$7) }
+  ELEMENT ID ID ASSIGN NEW ID expr SEMI  { New($2,$3,$6,$7) }
 
 /* Functions */
 func_decl_list:                   
@@ -107,10 +107,11 @@ element:
 
 /* World */
 world:
-	WORLD LBRACE PROPS LBRACE property_list RBRACE stmt_list RBRACE   
+	WORLD LBRACE PROPS LBRACE property_list RBRACE var_decl_list stmt_list RBRACE   
 	{{
     properties = List.rev $5;
-    init = List.rev $7;
+    init_locals = List.rev $7;
+    init_body = List.rev $8;
 	}}
 
 /* Statements */
@@ -119,7 +120,7 @@ stmt_list:          { [] }
 
 stmt:
 	  expr SEMI 									              { Expr $1 }
-  | element_decl                              { $1 }
+  | element_decl                              { $1 }                              
 	| RETURN expr SEMI 							            { Return $2 }
 	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
@@ -133,6 +134,7 @@ expr:
   | STRING_LITERAL                { SLiteral($1) }
 	| TRUE							            { BLiteral(true) }
 	| FALSE							            { BLiteral(false) }
+  | literals                      { $1 }
 	| expr PLUS expr                { Binop($1, Add, $3) }
   | expr MINUS expr               { Binop($1, Sub, $3) }
   | expr TIMES expr 				      { Binop($1, Mult, $3) }
@@ -149,4 +151,10 @@ expr:
   | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
   | LPAREN expr RPAREN 			      { $2 }
   | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
+
+literals:
+	  ID  			{ Id($1) }
+  | COLOR     { Id("color") }
+  | SIZE      { Id("size") }
+
 
