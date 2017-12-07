@@ -8,8 +8,8 @@
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
 %token INT FLOAT BOOL VOID TRUE FALSE
-%token SIZE DIRECT COLOR PAIR SPEED POS
-%token EVENT DEF ELEMENT WORLD
+%token SIZE DIRECT COLOR PAIR SPEED POS NEW
+%token EVENT DEF ELEMENT ELEMENTS WORLD
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -37,7 +37,7 @@
 
 /* Entry point */
 program:
-  world EOF { ($1) }
+  element_list world EOF { (List.rev $1, $2) }
 
 /* Variable types */
 typ:
@@ -101,13 +101,26 @@ property:
 	| SIZE ASSIGN expr SEMI 	 { (Pair, "size", $3) }
 	| COLOR ASSIGN expr SEMI 	 { (Color, "color", $3) }
 
+/* Elements */
+element_list: 
+  { [] } 
+  | element_list element 	{ $2 :: $1 }
+
+element: 
+	ELEMENT ID LBRACE prop_list RBRACE
+  {{ 
+    name = $2;
+    properties = List.rev $4; 
+  }}
+
 /* World */
 world:
 	WORLD LBRACE prop_list RBRACE
 	{{
-    body = List.rev $3;
+    properties = List.rev $3;
+    elements = List.rev $6
 	}}
-
+3
 /* Statements */
 stmt_list:        { [] }
 | stmt_list stmt	{ $2 :: $1 }

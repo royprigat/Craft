@@ -39,14 +39,19 @@ type func_decl = {
 	body : stmt list;
 }
 
+(* Elements *)
+type element = {
+	name: string;
+	properties: var_decl list;
+}
+
 (* World *)
 type world = {
-  body: var_decl list;
+  properties: var_decl list;
 }
 
 (* Program *)
-type program = world
-
+type program = element list * world
 
 
 
@@ -77,7 +82,6 @@ let string_of_op = function
 let string_of_uop = function
   Neg -> "-"
 | Not -> "!"
-
 
 let rec string_of_expr = function
   ILiteral(l) -> string_of_int l
@@ -123,8 +127,17 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
-let string_of_world this_world =
-  List.map string_of_vars this_world.body
+let string_of_elems elem = 
+  "\nelement " ^ elem.name ^ " " ^
+  "{\n " ^
+  String.concat " " (List.map string_of_vars elem.properties) ^ 
+  "}\n"
 
-let string_of_program (world) =
-  String.concat "" (string_of_world world)
+let string_of_world this_world =
+  "\nworld {\n " ^
+  String.concat " " (List.map string_of_vars this_world.properties) ^
+  "}\n"
+
+let string_of_program (elems,world) =
+  String.concat " " (List.map string_of_elems elems) ^
+  string_of_world world

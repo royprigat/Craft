@@ -49,8 +49,10 @@ rule token = parse
   | "false"     { FALSE }
   | "size"      { SIZE }
   | "color"     { COLOR }
+  | "new"       { NEW }
 
   | "element"   { ELEMENT }
+  | "elements"  { ELEMENTS}
   | "world"     { WORLD}
   | "event"     { EVENT }
   | "def"       { DEF }
