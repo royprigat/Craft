@@ -1,13 +1,12 @@
 #include "SDL2/SDL.h"
 #include "main.h"
 #include <stdio.h>
-#include <glib.h>
+// #include <glib.h>
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
 //REF: http://gamedevgeek.com/tutorials/moving-sprites-with-sdl/
 //Screen dimension constants
-
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -21,36 +20,24 @@ SDL_Surface *gScreenSurface = NULL;
 
 // SDL_Renderer* renderer = NULL;
 
-void render_element(){
+bool isPressed(int keyId){
+    return keystate[keyId];
+}
 
-    printf( "Reached render" );
-    // SDL_FreeSurface(player);
+void render_element(struct element *e) {
+    SDL_Rect rect;
+    rect.x = e->position.left;
+    rect.y = e->position.right;
+    rect.w = e->size.left;
+    rect.h = e->size.right;
 
-
-    // SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-
-    // // Clear winow
-    // SDL_RenderClear( renderer );
-    // SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-    SDL_Rect r;
-    r.x = 50;
-    r.y = 50;
-    r.w = 50;
-    r.h = 50;
-
-    // Render rect
-    // SDL_RenderFillRect( renderer, &r );
-
-    // // Render the rect to the screen
-    // SDL_RenderPresent(renderer);
-    // SDL_Delay(3000);
-    SDL_FillRect(gScreenSurface, &r, SDL_MapRGB(gScreenSurface->format, 255, 0, 0));
-};
+    SDL_FillRect(gScreenSurface, &rect, SDL_MapRGB(gScreenSurface->format, e->el_color.r, e->el_color.g, e->el_color.b));
+}
 
 
 bool init()
 {   
-    GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
+    // GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
     //Initialization flag
     bool success = true;
 
@@ -76,7 +63,6 @@ bool init()
             gScreenSurface = SDL_GetWindowSurface( gWindow );
             // renderer =  SDL_CreateRenderer( gWindow, -1, 0);
             // SDL_RenderSetLogicalSize( renderer, SCREEN_WIDTH, SCREEN_HEIGHT );
-            render_element();
         }
     }
 
@@ -131,13 +117,17 @@ int main( int argc, char* argv[] )
         {
             //Apply the image
             // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-            
-            //Update the surface
-            // SDL_UpdateWindowSurface( gWindow );
+            SDL_FillRect(gScreenSurface, NULL, 0xFFFFFF);
+            // Update the surface
+            SDL_UpdateWindowSurface( gWindow );
 
             //Wait two seconds
             SDL_Delay( 2000 );
         }
+        struct color c = {255, 0, 255};
+        struct element ele = {70, 70, 10, 10, c, 1, 1};
+        render_element(&ele);
+        SDL_UpdateWindowSurface( gWindow );
         //Event handler
         SDL_Event e;
 
@@ -158,28 +148,18 @@ int main( int argc, char* argv[] )
                     //Select surfaces based on key press
                     switch( e.key.keysym.sym )
                     {
-                        case SDLK_UP:
-                        printf("%s\n","UP" );
-                        break;
-
-                        case SDLK_DOWN:
-                        printf("%s\n", "DOWN");
-                        break;
-
-                        case SDLK_LEFT:
-                        printf("%s\n", "LEFT");
-                        break;
-
-                        case SDLK_RIGHT:
-                        printf("%s\n", "RIGHT" );
-                        break;
-
-                        default:
-                        printf("%s\n", "DEFAULT" );
-                        break;
+                        case SDLK_ESCAPE:
+                        
+                        case SDLK_q:
+                            quit = true;
+                            break;
                     }
                 }
             }
+
+            keystate = SDL_GetKeyboardState(NULL);
+
+            // printf("%d ", SDLK_LEFT);
         }
     }
 
