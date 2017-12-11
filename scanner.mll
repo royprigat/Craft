@@ -49,14 +49,18 @@ rule token = parse
   | "false"     { FALSE }
   | "size"      { SIZE }
   | "color"     { COLOR }
+  | "pos"	      { POS }
   | "new"       { NEW }
+  | "action"    { ACT }
+  | "condition" { COND }
 
   | "properties" { PROPS }
+  | "event"      { EVENT }
   | "element"    { ELEMENT }
   | "world"      { WORLD}
   | "event"      { EVENT }
   | "def"        { DEF }
-  | "pos"	       { POS }
+
 
   (* I/O Keywords *)
   (* | "key_up"    { KEY_UP }

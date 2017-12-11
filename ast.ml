@@ -45,6 +45,12 @@ type func_decl = {
 }
 
 (* Elements *)
+type event = {
+	evname: string;
+	properties: var_decl list;
+}
+
+(* Elements *)
 type element = {
 	ename: string;
 	properties: var_decl list;
