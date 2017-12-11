@@ -1,7 +1,6 @@
 #include "SDL2/SDL.h"
 #include "main.h"
 #include <stdio.h>
-// #include <glib.h>
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
@@ -101,6 +100,9 @@ void close()
 
 int main( int argc, char* argv[] )
 {
+    
+    list = NULL;
+
     //Start up SDL and create window
     if( !init() )
     {
@@ -126,6 +128,7 @@ int main( int argc, char* argv[] )
         }
         struct color c = {255, 0, 255};
         struct element ele = {70, 70, 10, 10, c, 1, 1};
+        list = g_slist_append(list, &ele);
         render_element(&ele);
         SDL_UpdateWindowSurface( gWindow );
         //Event handler
