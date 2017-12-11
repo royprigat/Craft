@@ -51,12 +51,12 @@ rule token = parse
   | "color"     { COLOR }
   | "new"       { NEW }
 
-  | "element"   { ELEMENT }
-  | "elements"  { ELEMENTS}
-  | "world"     { WORLD}
-  | "event"     { EVENT }
-  | "def"       { DEF }
-  | "pos"	      { POS }
+  | "properties" { PROPS }
+  | "element"    { ELEMENT }
+  | "world"      { WORLD}
+  | "event"      { EVENT }
+  | "def"        { DEF }
+  | "pos"	       { POS }
 
   (* I/O Keywords *)
   (* | "key_up"    { KEY_UP }

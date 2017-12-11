@@ -13,7 +13,7 @@ type expr =
   | SLiteral of string
   | BLiteral of bool
   | Pair of expr * expr
-  | Color of string
+  | Color of expr
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -22,6 +22,8 @@ type expr =
   | Call of string * expr list
   | Noexpr
 
+type element_decl = string * string * string * expr
+
 type stmt =
     Block of stmt list
   | Expr of expr
@@ -29,9 +31,12 @@ type stmt =
   | If of expr * stmt * stmt
   | Condition of stmt * stmt
   | While of expr * stmt
+  | New of element_decl
 
+(* Variable declaration  *)
 type var_decl =  typ * string * expr
 
+(* Function declaration *)
 type func_decl = {
 	fname : string;
 	formals : bind list;
@@ -41,13 +46,15 @@ type func_decl = {
 
 (* Elements *)
 type element = {
-	name: string;
+	ename: string;
 	properties: var_decl list;
 }
 
 (* World *)
 type world = {
   properties: var_decl list;
+  init_locals : var_decl list;
+  init_body: stmt list;
 }
 
 (* Program *)
@@ -90,7 +97,7 @@ let rec string_of_expr = function
 | BLiteral(false) -> "false"
 | SLiteral(s) -> s
 | Pair(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
-| Color(c) -> c
+| Color(c) -> string_of_expr c
 | Id(s) -> s
 | Binop(e1, o, e2) ->
   string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
@@ -100,7 +107,6 @@ let rec string_of_expr = function
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | Noexpr -> ""
 
-
 let rec string_of_stmt = function
     Block(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
@@ -109,12 +115,9 @@ let rec string_of_stmt = function
   | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
   | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  (* | For(e1, e2, e3, s) ->
-      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-      string_of_expr e3  ^ ") " ^ string_of_stmt s *)
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-
-
+  | New(a,b,c,d) -> "element " ^ a ^ " " ^ b ^ " = new " ^ c  ^ string_of_expr d ^ ";\n"
+ 
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
@@ -128,16 +131,18 @@ let string_of_fdecl fdecl =
   "}\n"
 
 let string_of_elems elem = 
-  "\nelement " ^ elem.name ^ " " ^
+  "\nelement " ^ elem.ename ^ " " ^
   "{\n " ^
   String.concat " " (List.map string_of_vars elem.properties) ^ 
   "}\n"
 
-let string_of_world this_world =
-  "\nworld {\n " ^
-  String.concat " " (List.map string_of_vars this_world.properties) ^
-  "}\n"
-
+let string_of_world world =
+  "\nworld {\nproperties {\n" ^
+  String.concat "" (List.map string_of_vars world.properties) ^ "}\n" ^
+  String.concat "" (List.map string_of_vars world.init_locals) ^
+  String.concat "" (List.map string_of_stmt world.init_body) ^
+  "}\n}\n"
+  
 let string_of_program (elems,world) =
   String.concat " " (List.map string_of_elems elems) ^
   string_of_world world
