@@ -8,8 +8,8 @@
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
 %token INT FLOAT BOOL VOID TRUE FALSE
-%token SIZE DIRECT COLOR PAIR SPEED POS NEW
-%token EVENT DEF PROPS ELEMENT ELEMENTS WORLD START
+%token SIZE DIRECT COLOR PAIR SPEED POS NEW ACT COND
+%token EVENT DEF PROPS ELEMENT WORLD START
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -129,12 +129,7 @@ stmt:
 
 /* Expressions */
 expr:
-	  INT_LITERAL 					        { ILiteral($1) }
-	| FLOAT_LITERAL 				        { FLiteral($1) }
-  | STRING_LITERAL                { SLiteral($1) }
-	| TRUE							            { BLiteral(true) }
-	| FALSE							            { BLiteral(false) }
-  | literals                      { $1 }
+    literals                      { $1 }
 	| expr PLUS expr                { Binop($1, Add, $3) }
   | expr MINUS expr               { Binop($1, Sub, $3) }
   | expr TIMES expr 				      { Binop($1, Mult, $3) }
@@ -153,8 +148,13 @@ expr:
   | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
 
 literals:
-	  ID  			{ Id($1) }
-  | COLOR     { Id("color") }
-  | SIZE      { Id("size") }
+	  INT_LITERAL 					        { ILiteral($1) }
+	| FLOAT_LITERAL 				        { FLiteral($1) }
+  | STRING_LITERAL                { SLiteral($1) }
+	| TRUE							            { BLiteral(true) }
+	| FALSE							            { BLiteral(false) }
+	| ID  			                    { Id($1) }
+  | COLOR                         { Id("color") }
+  | SIZE                          { Id("size") }
 
 

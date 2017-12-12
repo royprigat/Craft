@@ -11,5 +11,8 @@ world {
     int i = 1;
     int j = 3;
 
-    element player roy = new player(i,1);
+    element player roy = new player(i,i);
+
+
+
 }
