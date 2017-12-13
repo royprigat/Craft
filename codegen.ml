@@ -41,6 +41,7 @@ let translate (global_vars, elements, world) =
     | A.Color -> color_t
   in
 
+
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
     let global_var m (t, n) =

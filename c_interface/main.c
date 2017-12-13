@@ -12,6 +12,8 @@ SDL_Window* gWindow = NULL;
     
 //The surface contained by the window
 SDL_Surface *gScreenSurface = NULL;
+
+struct world *w;
 // SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
@@ -31,6 +33,14 @@ void render_element(struct element *e) {
     rect.h = e->size.right;
 
     SDL_FillRect(gScreenSurface, &rect, SDL_MapRGB(gScreenSurface->format, e->el_color.r, e->el_color.g, e->el_color.b));
+}
+void init_world(struct tuple *size, struct color *c){
+    w = malloc (sizeof (struct world));
+    SCREEN_WIDTH = size.left;
+    SCREEN_HEIGHT = size.right;
+}
+void add_element(struct element *e){
+    w ->list = g_slist_append(w ->list, e);
 }
 
 
@@ -101,7 +111,7 @@ void close()
 int main( int argc, char* argv[] )
 {
     
-    list = NULL;
+    // list = NULL;
 
     //Start up SDL and create window
     if( !init() )
@@ -128,7 +138,7 @@ int main( int argc, char* argv[] )
         }
         struct color c = {255, 0, 255};
         struct element ele = {70, 70, 10, 10, c, 1, 1};
-        list = g_slist_append(list, &ele);
+        // list = g_slist_append(list, &ele);
         render_element(&ele);
         SDL_UpdateWindowSurface( gWindow );
         //Event handler
