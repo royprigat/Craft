@@ -38,5 +38,5 @@ struct element{
 
 struct world{
     struct color back_color;
-    GSList* list
+    GSList* list;
 };
