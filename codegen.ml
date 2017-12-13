@@ -41,6 +41,16 @@ let translate (global_vars, elements, world) =
     | A.Color -> color_t
   in
 
+  let color_l = function
+    | A.Cl (A.SLiteral s) -> Some(L.build_global_stringptr s "string" builder)
+    | _ -> None 
+  in
+
+  let pair_l = function
+    | A.Pr (A.ILiteral x, A.ILiteral y) -> Some([|L.const_int i32_t x; L.const_int i32_t y|])
+    | _ -> None 
+  in 
+
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
     let global_var m (t, n) =
@@ -112,7 +122,7 @@ let translate (global_vars, elements, world) =
       | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup s) s builder
-      
+
       | A.Binop (e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in
@@ -148,20 +158,36 @@ let translate (global_vars, elements, world) =
         | A.Geq     -> L.build_icmp L.Icmp.Sge
         ) e1' e2' "tmp" builder
 
-
-
       | A.Unop(op, e) ->
         let e' = expr builder e in
         (match op with
-        A.Neg     -> L.build_neg
-      | A.Not     -> L.build_not) e' "tmp" builder
+          A.Neg     -> L.build_neg
+        | A.Not     -> L.build_not
+        ) e' "tmp" builder
+
+      | A.Cr (e) as color -> 
+        (match (color_l color) with
+            Some(s) -> L.const_named_struct clr_t s
+          | None ->
+            let clr_ptr = L.build_alloca color_t "tmp" builder in
+            let s_ptr = L.build_struct_gep clr_ptr 0 "hex" builder in
+            ignore (L.build_store e s_ptr builder);
+            L.build_load clr_ptr "c" builder)
+
+      | A.Pr (e1, e2) as pair -> 
+        (match (pair_l pair) with
+            Some(vals) -> L.const_named_struct vec_t vals
+          | None ->
+            let pair_ptr = L.build_alloca pair_t "tmp" builder in
+            let x_ptr = L.build_struct_gep pair_ptr 0 "x" builder in
+            ignore (L.build_store e1 x_ptr builder);
+            let y_ptr = L.build_struct_gep pair_ptr 1 "y" builder in
+            ignore (L.build_store e2 y_ptr builder);
+            L.build_load pair_ptr "v" builder)
+
       | A.Assign (s, e) -> let e' = expr builder e in
         ignore (L.build_store e' (lookup s) builder); e'
-      | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
-        L.build_call printf_func [| int_format_str ; (expr builder e) |]
-        "printf" builder
-      | A.Call ("printbig", [e]) ->
-        L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+
       | A.Call (f, act) ->
         let (fdef, fdecl) = StringMap.find f function_decls in
         let actuals = List.rev (List.map (expr builder) (List.rev act)) in
@@ -174,20 +200,20 @@ let translate (global_vars, elements, world) =
        have a terminal (e.g., a branch). *)
     let add_terminal builder f =
       match L.block_terminator (L.insertion_block builder) with
-  Some _ -> ()
+        Some _ -> ()
       | None -> ignore (f builder) in
   
     (* Build the code for the given statement; return the builder for
        the statement's successor *)
     let rec stmt builder = function
-  A.Block sl -> List.fold_left stmt builder sl
+        A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
       | A.Return e -> ignore (match fdecl.A.typ with
-    A.Void -> L.build_ret_void builder
-  | _ -> L.build_ret (expr builder e) builder); builder
+        A.Void -> L.build_ret_void builder
+      | _ -> L.build_ret (expr builder e) builder); builder
       | A.If (predicate, then_stmt, else_stmt) ->
          let bool_val = expr builder predicate in
-   let merge_bb = L.append_block context "merge" the_function in
+         let merge_bb = L.append_block context "merge" the_function in
 
    let then_bb = L.append_block context "then" the_function in
    add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)

@@ -12,8 +12,8 @@ type expr =
   | FLiteral of float
   | SLiteral of string
   | BLiteral of bool
-  | Pair of expr * expr
-  | Color of expr
+  | Pr of expr * expr
+  | Cr of expr
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -38,6 +38,7 @@ type var_decl =  typ * string * expr
 
 (* Function declaration *)
 type func_decl = {
+  typ : typ;
 	fname : string;
 	formals : bind list;
 	locals : var_decl list;
@@ -102,8 +103,8 @@ let rec string_of_expr = function
 | BLiteral(true) -> "true"
 | BLiteral(false) -> "false"
 | SLiteral(s) -> s
-| Pair(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
-| Color(c) -> string_of_expr c
+| Pr(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
+| Cr(c) -> string_of_expr c
 | Id(s) -> s
 | Binop(e1, o, e2) ->
   string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
