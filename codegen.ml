@@ -41,16 +41,6 @@ let translate (global_vars, elements, world) =
     | A.Color -> color_t
   in
 
-  let color_l = function
-    | A.Cl (A.SLiteral s) -> Some(L.build_global_stringptr s "string" builder)
-    | _ -> None 
-  in
-
-  let pair_l = function
-    | A.Pr (A.ILiteral x, A.ILiteral y) -> Some([|L.const_int i32_t x; L.const_int i32_t y|])
-    | _ -> None 
-  in 
-
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
     let global_var m (t, n) =
@@ -83,7 +73,6 @@ let translate (global_vars, elements, world) =
       StringMap.add name (L.define_element name eltype the_module, eldecl) m in
     List.fold_left element_decl StringMap.empty elements in
 
-  let build_element_body 
   
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
@@ -158,32 +147,29 @@ let translate (global_vars, elements, world) =
         | A.Geq     -> L.build_icmp L.Icmp.Sge
         ) e1' e2' "tmp" builder
 
-      | A.Unop(op, e) ->
+      | A.Unop (op, e) ->
         let e' = expr builder e in
         (match op with
           A.Neg     -> L.build_neg
         | A.Not     -> L.build_not
         ) e' "tmp" builder
 
-      | A.Cr (e) as color -> 
-        (match (color_l color) with
-            Some(s) -> L.const_named_struct clr_t s
-          | None ->
-            let clr_ptr = L.build_alloca color_t "tmp" builder in
-            let s_ptr = L.build_struct_gep clr_ptr 0 "hex" builder in
-            ignore (L.build_store e s_ptr builder);
-            L.build_load clr_ptr "c" builder)
+      | A.Cr (e) -> 
+        let e' = expr builder e in
+        let cr_ptr = L.build_alloca color_t "tmp" builder in
+        let hex_ptr = L.build_struct_gep cr_ptr 0 "hex" builder in
+          ignore (L.build_store e' hex_ptr builder);
+        L.build_load cr_ptr "c" builder)
 
-      | A.Pr (e1, e2) as pair -> 
-        (match (pair_l pair) with
-            Some(vals) -> L.const_named_struct vec_t vals
-          | None ->
-            let pair_ptr = L.build_alloca pair_t "tmp" builder in
-            let x_ptr = L.build_struct_gep pair_ptr 0 "x" builder in
-            ignore (L.build_store e1 x_ptr builder);
-            let y_ptr = L.build_struct_gep pair_ptr 1 "y" builder in
-            ignore (L.build_store e2 y_ptr builder);
-            L.build_load pair_ptr "v" builder)
+      | A.Pr (e1, e2) -> 
+        let e1' = expr builder e1 in
+        let e2' = expr builder e2 in
+        let pr_ptr = L.build_alloca pair_t "tmp" builder in
+        let x_ptr = L.build_struct_gep pr_ptr 0 "x" builder in
+          ignore (L.build_store e1' x_ptr builder);
+        let y_ptr = L.build_struct_gep pr_ptr 1 "y" builder in
+          ignore (L.build_store e2' y_ptr builder);
+        L.build_load pr_ptr "p" builder)
 
       | A.Assign (s, e) -> let e' = expr builder e in
         ignore (L.build_store e' (lookup s) builder); e'
