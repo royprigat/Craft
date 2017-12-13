@@ -1,5 +1,6 @@
 exception MissingEOF
-exception Invalid 
+exception Invalid
+exception InvalidBinaryOperation
 
 exception InvalidAssignment
 exception WrongNumberOfArguments 
