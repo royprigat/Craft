@@ -17,18 +17,26 @@ module A = Ast
 
 module StringMap = Map.Make(String)
 
-let translate (globals, elements) =
+let translate (global_vars, elements, world) =
   let context = L.global_context () in
-  let the_module = L.create_module context "MicroC"
-  and i32_t  = L.i32_type  context
-  and i8_t   = L.i8_type   context
-  and i1_t   = L.i1_type   context
-  and void_t = L.void_type context in
+  let the_module = L.create_module context "Craft"
+  and i32_t  = L.i32_type  context (*int*)
+  and i8_t   = L.i8_type   context (*printf format string / 8 bit pointer*)
+  and i1_t   = L.i1_type   context (*bool*)
+  and str_t  = L.pointer_type (L.i8_type context) 
+  and void_t = L.void_type context
+  and color_t = L.named_struct_type context "color_t"
+  L.struct_set_body color_t [|str_t|] false;
+  and pair_t = L.named_struct_type context "pair_t"
+  L.struct_set_body pair_t [|i32_t; i32_t|] false; in
 
   let ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
-    | A.Void -> void_t in
+    | A.Void -> void_t
+    | A.Pair -> pair_t
+    | A.Color -> color_t
+  in
 
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
@@ -54,6 +62,15 @@ let translate (globals, elements) =
       in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
+
+  let element_decls = 
+    let element_decl m eldecl =
+      let name = eldecl.A.ename in
+        let eltype = L.element_type (ltype_of_typ eldecl.A.typ) formal_types in
+      StringMap.add name (L.define_element name eltype the_module, eldecl) m in
+    List.fold_left element_decl StringMap.empty elements in
+
+  let build_element_body 
   
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
@@ -185,5 +202,7 @@ let translate (globals, elements) =
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
-  List.iter build_function_body functions;
+  (* List.iter build_function_body functions; *)
+
+
   the_module
