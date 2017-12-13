@@ -65,7 +65,7 @@ type world = {
 }
 
 (* Program *)
-type program = element list * world
+type program = var_decl list * element list * world
 
 
 

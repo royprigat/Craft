@@ -18,7 +18,7 @@ module E = Exceptions
 
 module StringMap = Map.Make(String)
 
-let translate (global_vars, elements, world) =
+let translate (globals, elements, world) =
   let context = L.global_context () in
   let the_module = L.create_module context "Craft"
   and i32_t  = L.i32_type  context (*int*)
@@ -26,11 +26,13 @@ let translate (global_vars, elements, world) =
   and i8_t   = L.i8_type   context (*printf format string / 8 bit pointer*)
   and i1_t   = L.i1_type   context (*bool*)
   and str_t  = L.pointer_type (L.i8_type context) 
-  and void_t = L.void_type context
-  and color_t = L.named_struct_type context "color_t"
+  and void_t = L.void_type context in
+  let color_t = L.named_struct_type context "color_t" in
   L.struct_set_body color_t [|str_t|] false;
-  and pair_t = L.named_struct_type context "pair_t"
-  L.struct_set_body pair_t [|i32_t; i32_t|] false; in
+  let pair_t = L.named_struct_type context "pair_t" in
+  L.struct_set_body pair_t [|i32_t; i32_t|] false;
+  let elem_t = L.named_struct_type context "elem_t" in
+  L.struct_set_body elem_t [|pair_t; pair_t; color_t; i32_t; flt_t|] false;
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -40,6 +42,9 @@ let translate (global_vars, elements, world) =
     | A.Pair -> pair_t
     | A.Color -> color_t
   in
+
+  let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
+  let add_e = L.declare_function "add_element" add_e_t the_module in
 
   (* Declare each global variable; remember its value in a map *)
   let global_vars =
@@ -60,8 +65,7 @@ let translate (global_vars, elements, world) =
   let function_decls =
     let function_decl m fdecl =
       let name = fdecl.A.fname
-      and formal_types =
-  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
+      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
       in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
@@ -107,7 +111,7 @@ let translate (global_vars, elements, world) =
     let rec expr builder = function
         A.ILiteral i -> L.const_int i32_t i
       | A.Fliteral f -> L.const_float flt_t f
-      | A.SLiteral s -> L.build_global_stringptr s "string" builder
+      | A.SLiteral s -> L.const_string context s
       | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
       | A.Noexpr -> L.const_int i32_t 0
       | A.Id s -> L.build_load (lookup s) s builder
@@ -159,7 +163,7 @@ let translate (global_vars, elements, world) =
         let cr_ptr = L.build_alloca color_t "tmp" builder in
         let hex_ptr = L.build_struct_gep cr_ptr 0 "hex" builder in
           ignore (L.build_store e' hex_ptr builder);
-        L.build_load cr_ptr "c" builder)
+        L.build_load cr_ptr "c" builder
 
       | A.Pr (e1, e2) -> 
         let e1' = expr builder e1 in
@@ -169,7 +173,7 @@ let translate (global_vars, elements, world) =
           ignore (L.build_store e1' x_ptr builder);
         let y_ptr = L.build_struct_gep pr_ptr 1 "y" builder in
           ignore (L.build_store e2' y_ptr builder);
-        L.build_load pr_ptr "p" builder)
+        L.build_load pr_ptr "p" builder
 
       | A.Assign (s, e) -> let e' = expr builder e in
         ignore (L.build_store e' (lookup s) builder); e'
@@ -196,6 +200,21 @@ let translate (global_vars, elements, world) =
       | A.Expr e -> ignore (expr builder e); builder
       | A.Return e -> ignore (match fdecl.A.typ with
         A.Void -> L.build_ret_void builder
+      | A.New elem -> 
+        let (t, name, t_check, pos) = elem in
+
+(*  *)
+
+
+
+
+
+
+
+
+
+
+
       | _ -> L.build_ret (expr builder e) builder); builder
       | A.If (predicate, then_stmt, else_stmt) ->
          let bool_val = expr builder predicate in
@@ -240,7 +259,7 @@ let translate (global_vars, elements, world) =
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
-  (* List.iter build_function_body functions; *)
+  List.iter build_function_body functions;
 
 
   the_module
