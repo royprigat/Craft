@@ -7,7 +7,7 @@ LIB_DIR = /usr/local/lib
 CFLAGS = -Wall `pkg-config --cflags --libs glib-2.0`
 
 .PHONY : all
-all : craft.native world.o main.o #link c here?
+all : craft.native main.o #link c here?
 
 
 
