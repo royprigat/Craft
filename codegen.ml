@@ -46,7 +46,6 @@ let translate (globals, elements, world) =
     | A.Color -> color_t
   in
 
-<<<<<<< Updated upstream
   let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
   let add_e = L.declare_function "add_element" add_e_t the_module in
 
