@@ -285,9 +285,9 @@ let translate (elements, world) =
     let size_expr = get_var_expr "size" world.A.properties in 
     ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
 
-    (* let color_expr = get_var_expr "color" world.A.properties in
-    let color_str = string_of_expr color_expr in *)
-    let world_color_str_ptr = L.build_global_stringptr "e51a1a" "color_str_ptr" builder in
+    let color_expr = get_var_expr "color" world.A.properties in
+    let color_str = string_of_expr color_expr in
+    let world_color_str_ptr = L.build_global_stringptr color_str "color_str_ptr" builder in
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
     ignore (L.build_store world_color_str_ptr color_ptr builder);
 

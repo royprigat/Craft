@@ -3,6 +3,6 @@
 world {
     properties {
         size = (1000,1000);
-        color = "ffffff";
+        color = "1a79e5";
     }
 }
