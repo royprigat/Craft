@@ -120,8 +120,8 @@ void close()
     //Quit SDL subsystems
     SDL_Quit();
 }
-
-int main( int argc, char* argv[] )
+//haha
+int world()
 {
     
     while(!shouldStart){

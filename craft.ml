@@ -48,7 +48,7 @@ let _ =
 
     let command_1 = "llc " ^ ll_name ^ " > " ^ s_name in
     ignore (Sys.command command_1);
-    let command_2 = "gcc -o " ^ exe_name ^ " " ^ s_name ^ " world.o -L/usr/local/lib -lSDL2" in
+    let command_2 = "gcc -o " ^ exe_name ^ " " ^ s_name ^ " ./c_interface/main.o -L/usr/local/lib -lSDL2 `pkg-config --cflags --libs glib-2.0" in
     ignore (Sys.command command_2);
 
    
