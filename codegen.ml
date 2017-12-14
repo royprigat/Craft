@@ -28,13 +28,13 @@ let translate (elements, world) =
   and str_t  = L.pointer_type (L.i8_type context) 
   and void_t = L.void_type context in
   let color_t = L.named_struct_type context "color_t" in
-  L.struct_set_body color_t [|str_t|] false;
+  L.struct_set_body color_t [|i32_t; i32_t; i32_t|] false;
   let pair_t = L.named_struct_type context "pair_t" in
   L.struct_set_body pair_t [|i32_t; i32_t|] false;
   let elem_t = L.named_struct_type context "elem_t" in
   L.struct_set_body elem_t [|pair_t; pair_t; color_t; i32_t; flt_t|] false;
   let world_t = L.named_struct_type context "world_t" in
-  L.struct_set_body world_t [|pair_t;color_t|] false;
+  L.struct_set_body world_t [|pair_t;str_t|] false;
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -62,6 +62,11 @@ let translate (elements, world) =
       match List.filter func var_list with
         | (t,s,e) :: tl -> e
         | [] -> A.Noexpr
+  in
+
+  let rec string_of_expr = function
+    | A.SLiteral(s) -> s
+    | A.Cr(c) -> string_of_expr c
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -254,7 +259,7 @@ let translate (elements, world) =
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in *)
 
-(*   let add_world_props m props builder =
+  let add_world_props m props builder =
     let add_prop m (t,n,e) = 
     let e' = expr builder e in 
     let prop = L.build_alloca (ltype_of_typ t) n builder in
@@ -264,40 +269,51 @@ let translate (elements, world) =
     List.fold_left add_prop m props
   in
 
-  let world_start world map = 
+  (* let world_start world map = 
     let name = "world_start" in
     let func_type = L.function_type (L.pointer_type world_t) [||] in
     let func = L.define_function name func_type the_module in
     (StringMap.add name func map, func)
-  in
+  in *)
 
-  let world_start_func world map =
-    let (map, func) = world_start world map in
-    let builder = L.builder_at_end context (L.entry_block func) in
+  let world_start_func world map builder =
+    (* let (map, func) = world_start world map in
+    let builder = L.builder_at_end context (L.entry_block func) in *)
     let world_ptr = L.build_malloc world_t ("world_ptr") builder in 
     
     let world_size_ptr = L.build_struct_gep world_ptr 0 ("size_ptr") builder in
     let size_expr = get_var_expr "size" world.A.properties in 
     ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
-    (* TODO: convert hex to rgb *)
-    let world_color_ptr = L.build_struct_gep world_ptr 1 ("color_ptr") builder in
+
+    (* let color_expr = get_var_expr "color" world.A.properties in
+    let color_str = string_of_expr color_expr in *)
+    let world_color_str_ptr = L.build_global_stringptr "aaaaaa" "color_str_ptr" builder in
+    let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
+    ignore (L.build_store world_color_str_ptr color_ptr builder);
+
+    (* let world_color_ptr = L.build_struct_gep world_ptr 1 ("color_ptr") builder in
     let color_expr = get_var_expr "color" world.A.properties in 
-    ignore (L.build_store (expr builder color_expr) world_color_ptr builder);
-    ignore (L.build_ret world_ptr builder);
-    map
+    ignore (L.build_store (expr builder color_expr) world_color_ptr builder); *)
+
+    (* ignore (L.build_ret world_ptr builder); *)
+    world_ptr
   in
-   *)
+  
 
-
-  (* let main_map = world_start_func world StringMap.empty in  *)
+  
 
   let main_func_type = L.function_type i32_t [||] in
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
-  (* let temp_ptr_world = StringMap.find "world_ptr" main_map in *)
+  
+  let world_ptr = world_start_func world StringMap.empty main_func_builder in 
+  
+  
+  (* let temp_ptr_world = StringMap.find "world_start" main_map in *)
+
   ignore (L.build_call world_func [||] "" main_func_builder);
-  (* ignore (L.build_call init_world_func [|temp_ptr_world|] "" main_func_builder);
-  ignore (L.build_call start_render_func [||] "" main_func_builder); *)
+  ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
+  ignore (L.build_call start_render_func [||] "" main_func_builder); 
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
 
 
