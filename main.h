@@ -6,6 +6,8 @@ int SCREEN_HEIGHT = 480;
 
 const Uint8 *keystate = NULL;
 
+GSList* element_list;
+
 //Starts up SDL and creates window
 bool init();
 
