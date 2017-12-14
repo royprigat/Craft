@@ -18,7 +18,7 @@ module E = Exceptions
 
 module StringMap = Map.Make(String)
 
-let translate (globals, elements, world) =
+let translate (elements, world) =
   let context = L.global_context () in
   let the_module = L.create_module context "Craft"
   and i32_t  = L.i32_type  context (*int*)
@@ -53,17 +53,17 @@ let translate (globals, elements, world) =
   let get_var_expr var_name var_list = 
     let func = fun (t,s,e) -> s = var_name in
       match List.filter func var_list with
-        | (t,s,e) -> e
+        | (t,s,e) :: tl -> e
         | [] -> A.Noexpr
   in
 
   (* Declare each global variable; remember its value in a map *)
-  let global_vars =
+  (* let global_vars =
   let global_var m (t, n) =
       let init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals 
-  in
+  in *)
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -73,31 +73,33 @@ let translate (globals, elements, world) =
   let printbig_t = L.function_type i32_t [| i32_t |] in
   let printbig_func = L.declare_function "printbig" printbig_t the_module in
 
+
+
   (* Define each function (arguments and return type) so we can call it *)
-  let function_decls =
+  (* let function_decls =
   let function_decl m fdecl =
       let name = fdecl.A.fname
       and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
       in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions 
-  in
+  in *)
 
-  let element_decls = 
+  (* let element_decls = 
   let element_decl m eldecl =
       let name = eldecl.A.ename in
         let eltype = L.element_type (ltype_of_typ eldecl.A.typ) formal_types in
       StringMap.add name (L.define_element name eltype the_module, eldecl) m in
     List.fold_left element_decl StringMap.empty elements 
-  in
+  in *)
 
   (* Fill in the body of the given function *)
-  let build_function_body fdecl =
+  (* let build_function_body fdecl =
     let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder 
-  in
+  in *)
     
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -110,28 +112,21 @@ let translate (globals, elements, world) =
   in *)
 
 
-  let add_world_props m props =
-    let add_prop m (t,n,e) = 
-    let e' = expr builder in 
-    let prop = L.build_alloca (ltype_of_typ t) n builder in 
-    StringMap.add n local_var m in
 
-    List.fold_left add_prop m props 
-  in
 
     (* Return the value for a variable or formal argument *)
-  let lookup n = try StringMap.find n local_vars
+  (* let lookup n = try StringMap.find n local_vars
                    with Not_found -> StringMap.find n global_vars
-  in
+  in *)
 
     (* Construct code for an expression; return its value *)
   let rec expr builder = function
       A.ILiteral i -> L.const_int i32_t i
-    | A.Fliteral f -> L.const_float flt_t f
+    (* | A.Fliteral f -> L.const_float flt_t f *)
     | A.SLiteral s -> L.const_string context s
     | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
     | A.Noexpr -> L.const_int i32_t 0
-    | A.Id s -> L.build_load (lookup s) s builder
+    (* | A.Id s -> L.build_load (lookup s) s builder *)
 
     | A.Binop (e1, op, e2) ->
       let e1' = expr builder e1
@@ -142,7 +137,6 @@ let translate (globals, elements, world) =
         A.Add     -> L.build_fadd
       | A.Sub     -> L.build_fsub
       | A.Mult    -> L.build_fmul
-      | A.Mod     -> L.build_frem
       | A.Div     -> L.build_fdiv
       | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
       | A.Neq     -> L.build_fcmp L.Fcmp.One
@@ -193,15 +187,15 @@ let translate (globals, elements, world) =
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
 
-    | A.Assign (s, e) -> let e' = expr builder e in
-      ignore (L.build_store e' (lookup s) builder); e'
+    (* | A.Assign (s, e) -> let e' = expr builder e in
+      ignore (L.build_store e' (lookup s) builder); e' *)
 
-    | A.Call (f, act) ->
+    (* | A.Call (f, act) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
       let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-      let result = (match fdecl.A.typ with A.Void -> ""
-    | _ -> f ^ "_result") in
-      L.build_call fdef (Array.of_list actuals) result builder
+      let result = (match fdecl.A.typ with A.Void -> "" *)
+    (* | _ -> f ^ "_result") in
+      L.build_call fdef (Array.of_list actuals) result builder *)
   in
 
   (* Invoke "f builder" if the current block doesn't already have a terminal (e.g., a branch). *)
@@ -212,7 +206,7 @@ let translate (globals, elements, world) =
   in
   
   (* Build the code for the given statement; return the builder for the statement's successor *)
-  let rec stmt builder = function
+  (* let rec stmt builder = function
         A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
       | A.Return e -> ignore (match fdecl.A.typ with
@@ -250,22 +244,29 @@ let translate (globals, elements, world) =
         let merge_bb = L.append_block context "merge" the_function in
         ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
         L.builder_at_end context merge_bb
-
-      | A.For (e1, e2, e3, body) -> stmt builder
-        ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-  in
+  in *)
 
   (* Build the code for each statement in the function *)
-  let builder = stmt builder (A.Block fdecl.A.body) in
+  (* let builder = stmt builder (A.Block fdecl.A.body) in *)
     (* Add a return if the last block falls off the end *)
-    add_terminal builder (match fdecl.A.typ with
+    (* add_terminal builder (match fdecl.A.typ with
         A.Void -> L.build_ret_void
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
+  in *)
+
+  let add_world_props m props builder =
+    let add_prop m (t,n,e) = 
+    let e' = expr builder e in 
+    let prop = L.build_alloca (ltype_of_typ t) n builder in
+    ignore (L.build_store e' prop builder); 
+    StringMap.add n prop m in
+
+    List.fold_left add_prop m props
   in
 
   let world_start world map = 
     let name = "world_start" in
-    let func_type = L.function_type (L.pointer world_t) [||] in
+    let func_type = L.function_type (L.pointer_type world_t) [||] in
     let func = L.define_function name func_type the_module in
     (StringMap.add name func map, func)
   in
@@ -275,22 +276,27 @@ let translate (globals, elements, world) =
     let builder = L.builder_at_end context (L.entry_block func) in
     let world_ptr = L.build_malloc world_t ("world_ptr") builder in 
     
+    let world_size_ptr = L.build_struct_gep world_ptr 1 ("size_ptr") builder in
+    let size_expr = get_var_expr "size" world.A.properties in 
+    ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
+    map
+  in
   (* 
     (* TODO: convert hex to rgb *)
     let world_color_ptr = L.build_struct_gep world_ptr 0 ("color_ptr") builder in
     let color_expr = get_var_expr "color" world.A.properties in 
     ignore (L.build_store (expr builder color_expr) world_color_ptr builder); 
   *)
-
-    let world_size_ptr = L.build_struct_gep world_ptr 1 ("size_ptr") builder in
-    let size_expr = get_var_expr "size" world.A.properties in 
-    ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
-
-    ignore (L.build_call)
+    (* ignore (L.build_call) *)
 
 
-  let main_map = world_start world main_map in 
+  let main_map = world_start world StringMap.empty in 
 
-  List.iter build_function_body functions;
+  let main_func_type = L.function_type i32_t [||] in
+  let main_func = L.define_function "main" main_func_type the_module in
+  let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
+  (* ignore (L.build_call **the render func** args... ); *)
+  ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
+
 
   the_module

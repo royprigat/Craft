@@ -61,7 +61,7 @@ element_decl:
   ELEMENT ID ID ASSIGN NEW ID expr SEMI  { New($2,$3,$6,$7) }
 
 /* Functions */
-func_decl_list:                   
+/* func_decl_list:                   
   { [] }
   | func_decl_list func_decl 	{ $2 :: $1 }
 
@@ -72,7 +72,7 @@ func_decl:
 			formals = $4;
 			locals = List.rev $7;
       body = List.rev $8;
-  }}
+  }} */
 
 /* Function arguments */
 formals_list_opt:             
@@ -145,7 +145,7 @@ expr:
   | NOT expr  					          { Unop(Not, $2) }
   | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
   | LPAREN expr RPAREN 			      { $2 }
-  | LPAREN expr COMMA expr RPAREN { Pair($2,$4) }
+  | LPAREN expr COMMA expr RPAREN { Pr($2,$4) }
 
 literals:
 	  INT_LITERAL 					        { ILiteral($1) }

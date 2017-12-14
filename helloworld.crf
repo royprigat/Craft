@@ -1,18 +1,8 @@
-element player {
-    size = (10,10);
-    color = "aaaaaa";
-}
+
 
 world {
     properties {
         size = (100,100);
         color = "ffffff";
     }
-    int i = 1;
-    int j = 3;
-
-    element player roy = new player(i,i);
-
-
-
 }
