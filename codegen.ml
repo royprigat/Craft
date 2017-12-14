@@ -47,7 +47,7 @@ let translate (elements, world) =
 
   let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
   let add_e = L.declare_function "add_element" add_e_t the_module in
-  
+
   let world_func_t = L.function_type i32_t [||] in
   let world_func = L.declare_function "world" world_func_t the_module in
 
@@ -212,10 +212,10 @@ let translate (elements, world) =
   in
 
   (* Store all elements struct pointers in main map *)
-  let store_elements m elem_type elem_list elem_name builder =
+  let store_elements m elem_type elem_list elem_n builder =
     let store_element m element =
       if elem_type = element.A.ename then
-       let elem_name = (elem_name ^ "_" ^ element.A.ename ^ "_element") in
+       let elem_name = (elem_n ^ "_" ^ element.A.ename ^ "_element") in
        let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
         
        let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
