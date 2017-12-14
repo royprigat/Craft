@@ -274,7 +274,7 @@ let translate (elements, world) =
 
   let store_elements m elem_list builder =
     let store_element m element =
-      let elem_name = element.A.ename ^ "_element" in
+      let elem_name = (element.A.ename ^ "_element") in
     
       let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
       
@@ -285,12 +285,14 @@ let translate (elements, world) =
       let color_expr = get_var_expr "color" element.A.properties in
       let color_str = string_of_expr color_expr in
       let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
-      let color_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_color_ptr") builder in
+      let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
       ignore (L.build_store elem_color_str_ptr color_ptr builder);
+      StringMap.add elem_name elem_ptr m in
+ 
 
-    List.fold_left store_element m elem_list 
+    List.fold_left store_element m elem_list
   in
-
+ 
 
 
 
