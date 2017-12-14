@@ -1,8 +1,8 @@
 #include <stdbool.h>
 #include <glib.h>
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+int SCREEN_WIDTH = 640;
+int SCREEN_HEIGHT = 480;
 
 const Uint8 *keystate = NULL;
 
@@ -31,12 +31,13 @@ struct color{
 struct element{
     struct tuple size;
     struct tuple position;
-    struct color el_color;
+    char* el_color;
     int direction;
     float speed;
 };
 
 struct world{
-    struct color back_color;
+    struct tuple size;
+    char* back_color;
     GSList* list;
 };

@@ -1,6 +1,8 @@
 #include "SDL2/SDL.h"
 #include "main.h"
 #include <stdio.h>
+#include <stdlib.h>
+bool shouldStart = false;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
@@ -21,6 +23,10 @@ struct world *w;
 
 // SDL_Renderer* renderer = NULL;
 
+
+void startRender(){
+    shouldStart = true;
+}
 bool isPressed(int keyId){
     return keystate[keyId];
 }
@@ -31,11 +37,12 @@ void render_element(struct element *e) {
     rect.y = e->position.right;
     rect.w = e->size.left;
     rect.h = e->size.right;
-
-    SDL_FillRect(gScreenSurface, &rect, SDL_MapRGB(gScreenSurface->format, e->el_color.r, e->el_color.g, e->el_color.b));
+    SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
-void init_world(struct tuple *size, struct color *c){
+void init_world(struct tuple size, char *c){
     w = malloc (sizeof (struct world));
+    w->back_color = c;
+    w->list = NULL;
     SCREEN_WIDTH = size.left;
     SCREEN_HEIGHT = size.right;
 }
@@ -43,9 +50,15 @@ void add_element(struct element *e){
     w ->list = g_slist_append(w ->list, e);
 }
 
+void delete_element(struct element *e){
+    
+}
+
 
 bool init()
 {   
+    // struct tuple s = {400,500};
+    // init_world(s, "FFFFFF");
     // GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
     //Initialization flag
     bool success = true;
@@ -111,8 +124,8 @@ void close()
 int main( int argc, char* argv[] )
 {
     
-    // list = NULL;
-
+    while(!shouldStart){
+    }
     //Start up SDL and create window
     if( !init() )
     {
@@ -129,15 +142,15 @@ int main( int argc, char* argv[] )
         {
             //Apply the image
             // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-            SDL_FillRect(gScreenSurface, NULL, 0xFFFFFF);
+            SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
             // Update the surface
             SDL_UpdateWindowSurface( gWindow );
 
             //Wait two seconds
             SDL_Delay( 2000 );
         }
-        struct color c = {255, 0, 255};
-        struct element ele = {70, 70, 10, 10, c, 1, 1};
+
+        struct element ele = {70, 70, 10, 10, "aabbcc", 1, 1};
         // list = g_slist_append(list, &ele);
         render_element(&ele);
         SDL_UpdateWindowSurface( gWindow );
