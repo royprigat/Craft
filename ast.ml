@@ -148,7 +148,7 @@ let string_of_world world =
   String.concat "" (List.map string_of_vars world.properties) ^ "}\n" ^
   String.concat "" (List.map string_of_vars world.init_locals) ^
   String.concat "" (List.map string_of_stmt world.init_body) ^
-  "}\n}\n"
+  "}\n"
   
 let string_of_program (elems,world) =
   String.concat " " (List.map string_of_elems elems) ^
