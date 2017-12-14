@@ -25,6 +25,7 @@ struct world *w;
 
 
 void startRender(){
+    printf( "entering world in main.c!\n" );
     shouldStart = true;
 }
 bool isPressed(int keyId){
@@ -40,8 +41,11 @@ void render_element(struct element *e) {
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
 void init_world(struct world *temp){
-    // w = malloc (sizeof (struct world));
+    printf( "entering world init_world in main.c!\n" );
     w=temp;
+    printf("%d, %d\n", w->size.left, w->size.right);
+    // w = malloc (sizeof (struct world));
+    
     // w->list = NULL;
     SCREEN_WIDTH = w->size.left;
     SCREEN_HEIGHT = w->size.right;
@@ -72,7 +76,7 @@ bool init()
     else
     {
         //Create window
-        gWindow = SDL_CreateWindow( "Sandbox", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Craft", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         // gWindow = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
         if( gWindow == NULL )
         {
@@ -125,8 +129,8 @@ int world()
 {
     printf( "entering world in main.c!\n" );
     
-    while(!shouldStart){
-    }
+    // while(!shouldStart){
+    // }
     //Start up SDL and create window
     if( !init() )
     {

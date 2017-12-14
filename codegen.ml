@@ -287,7 +287,7 @@ let translate (elements, world) =
 
     (* let color_expr = get_var_expr "color" world.A.properties in
     let color_str = string_of_expr color_expr in *)
-    let world_color_str_ptr = L.build_global_stringptr "aaaaaa" "color_str_ptr" builder in
+    let world_color_str_ptr = L.build_global_stringptr "e51a1a" "color_str_ptr" builder in
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
     ignore (L.build_store world_color_str_ptr color_ptr builder);
 
@@ -310,10 +310,10 @@ let translate (elements, world) =
   
   
   (* let temp_ptr_world = StringMap.find "world_start" main_map in *)
-
-  ignore (L.build_call world_func [||] "" main_func_builder);
   ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
-  ignore (L.build_call start_render_func [||] "" main_func_builder); 
+  ignore (L.build_call world_func [||] "" main_func_builder);
+  
+  (* ignore (L.build_call start_render_func [||] "" main_func_builder);  *)
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
 
 
