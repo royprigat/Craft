@@ -32,8 +32,8 @@ struct element{
     struct tuple size;
     struct tuple position;
     char* el_color;
-    int direction;
-    float speed;
+    // int direction;
+    // float speed;
 };
 
 struct world{

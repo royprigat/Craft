@@ -32,7 +32,7 @@ let translate (elements, world) =
   let pair_t = L.named_struct_type context "pair_t" in
   L.struct_set_body pair_t [|i32_t; i32_t|] false;
   let elem_t = L.named_struct_type context "elem_t" in
-  L.struct_set_body elem_t [|pair_t; pair_t; color_t; i32_t; flt_t|] false;
+  L.struct_set_body elem_t [|pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
 
@@ -259,26 +259,44 @@ let translate (elements, world) =
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in *)
 
-  let add_world_props m props builder =
-    let add_prop m (t,n,e) = 
+
+
+  let store_props m props builder =
+    let store_prop m (t,n,e) = 
     let e' = expr builder e in 
     let prop = L.build_alloca (ltype_of_typ t) n builder in
     ignore (L.build_store e' prop builder); 
     StringMap.add n prop m in
 
-    List.fold_left add_prop m props
+    List.fold_left store_prop m props
   in
 
-  (* let world_start world map = 
-    let name = "world_start" in
-    let func_type = L.function_type (L.pointer_type world_t) [||] in
-    let func = L.define_function name func_type the_module in
-    (StringMap.add name func map, func)
-  in *)
 
-  let world_start_func world map builder =
-    (* let (map, func) = world_start world map in
-    let builder = L.builder_at_end context (L.entry_block func) in *)
+  let store_elements m elem_list builder =
+    let store_element m element =
+      let elem_name = element.A.ename ^ "_element" in
+    
+      let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
+      
+      let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
+      let size_expr = get_var_expr "size" element.A.properties in 
+      ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
+
+      let color_expr = get_var_expr "color" element.A.properties in
+      let color_str = string_of_expr color_expr in
+      let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
+      let color_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_color_ptr") builder in
+      ignore (L.build_store elem_color_str_ptr color_ptr builder);
+
+    List.fold_left store_element m elem_list 
+  in
+
+
+
+
+
+  let world_start_func world builder =
+  
     let world_ptr = L.build_malloc world_t ("world_ptr") builder in 
     
     let world_size_ptr = L.build_struct_gep world_ptr 0 ("size_ptr") builder in
@@ -291,10 +309,6 @@ let translate (elements, world) =
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
     ignore (L.build_store world_color_str_ptr color_ptr builder);
 
-    (* let world_color_ptr = L.build_struct_gep world_ptr 1 ("color_ptr") builder in
-    let color_expr = get_var_expr "color" world.A.properties in 
-    ignore (L.build_store (expr builder color_expr) world_color_ptr builder); *)
-
     (* ignore (L.build_ret world_ptr builder); *)
     world_ptr
   in
@@ -306,7 +320,8 @@ let translate (elements, world) =
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
   
-  let world_ptr = world_start_func world StringMap.empty main_func_builder in 
+   
+  let world_ptr = world_start_func world main_func_builder in 
   
   
   (* let temp_ptr_world = StringMap.find "world_start" main_map in *)
