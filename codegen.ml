@@ -271,9 +271,17 @@ let translate (elements, world) =
     List.fold_left store_prop m props
   in
 
+  let elem_init m element =
+    let elem_name = element.A.ename ^ "_element" in
+    let func_type = L.function_type (L.pointer_type elem_t) [||] in
+    let func_ptr = L.define_function elem_name func_type the_module in 
+    (StringMap.add elem_name func_ptr m, func_ptr)
+  in
 
-  let store_elements m elem_list builder =
+  let store_elements m elem_list =
     let store_element m element =
+      let (elem_map, func_ptr) = elem_init m element in
+      let builder = L.builder_at_end context (L.entry_block func_ptr) in
       let elem_name = (element.A.ename ^ "_element") in
     
       let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
@@ -287,7 +295,7 @@ let translate (elements, world) =
       let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
       let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
       ignore (L.build_store elem_color_str_ptr color_ptr builder);
-      StringMap.add elem_name elem_ptr m in
+      StringMap.add elem_name elem_ptr elem_map in
  
 
     List.fold_left store_element m elem_list
@@ -322,7 +330,7 @@ let translate (elements, world) =
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
   
-   
+  let main_map = store_elements StringMap.empty elements in
   let world_ptr = world_start_func world main_func_builder in 
   
   
