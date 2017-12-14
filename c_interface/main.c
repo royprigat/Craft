@@ -39,15 +39,15 @@ void render_element(struct element *e) {
     rect.h = e->size.right;
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
-void init_world(struct tuple size, char *c){
-    w = malloc (sizeof (struct world));
-    w->back_color = c;
-    w->list = NULL;
-    SCREEN_WIDTH = size.left;
-    SCREEN_HEIGHT = size.right;
+void init_world(struct world *temp){
+    // w = malloc (sizeof (struct world));
+    w=temp;
+    // w->list = NULL;
+    SCREEN_WIDTH = w->size.left;
+    SCREEN_HEIGHT = w->size.right;
 }
 void add_element(struct element *e){
-    w ->list = g_slist_append(w ->list, e);
+    // w ->list = g_slist_append(w ->list, e);
 }
 
 void delete_element(struct element *e){

@@ -39,5 +39,4 @@ struct element{
 struct world{
     struct tuple size;
     char* back_color;
-    GSList* list;
 };
