@@ -2,7 +2,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
-bool shouldStart = true;
+bool shouldStart = false;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
@@ -25,6 +25,7 @@ struct world *w;
 
 
 void startRender(){
+    printf( "entering world in main.c!\n" );
     shouldStart = true;
 }
 bool isPressed(int keyId){
@@ -40,19 +41,21 @@ void render_element(struct element *e) {
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
 void init_world(struct world *temp){
-    // w = malloc (sizeof (struct world));
+    printf( "entering world init_world in main.c!\n" );
     w=temp;
+    printf("%d, %d\n", w->size.left, w->size.right);
+    // w = malloc (sizeof (struct world));
+    
     // w->list = NULL;
     SCREEN_WIDTH = w->size.left;
     SCREEN_HEIGHT = w->size.right;
 }
 void add_element(struct element *e){
-    element_list = g_slist_append(element_list, e);
+    // w ->list = g_slist_append(w ->list, e);
 }
 
 void delete_element(struct element *e){
-    free(e->el_color);
-    free(e);
+    
 }
 
 
@@ -73,7 +76,7 @@ bool init()
     else
     {
         //Create window
-        gWindow = SDL_CreateWindow( "Sandbox", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow( "Craft", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         // gWindow = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
         if( gWindow == NULL )
         {
@@ -126,8 +129,8 @@ int world()
 {
     printf( "entering world in main.c!\n" );
     
-    while(!shouldStart){
-    }
+    // while(!shouldStart){
+    // }
     //Start up SDL and create window
     if( !init() )
     {
@@ -144,7 +147,7 @@ int world()
         {
             //Apply the image
             // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-            SDL_FillRect(gScreenSurface, NULL, (int)strtol("ffffff", NULL, 16));
+            SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
             // Update the surface
             SDL_UpdateWindowSurface( gWindow );
 
@@ -152,17 +155,9 @@ int world()
             SDL_Delay( 2000 );
         }
 
-        // struct element ele = {20, 20, 10, 10, "aabbcc", 1, 1};
-        // struct element ele1 = {20, 20, 70, 70, "bbbbbb", 1, 1};
-        // element_list = g_slist_append(element_list, &ele);
-        // element_list = g_slist_append(element_list, &ele1);
-        GSList* iterator = NULL;
-        // render_element(&ele);
-        for (iterator = element_list; iterator; iterator = iterator->next)
-        {
-            render_element((struct element*)iterator->data);
-        }
-        
+        struct element ele = {70, 70, 10, 10, "aabbcc", 1, 1};
+        // list = g_slist_append(list, &ele);
+        render_element(&ele);
         SDL_UpdateWindowSurface( gWindow );
         //Event handler
         SDL_Event e;

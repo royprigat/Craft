@@ -1,0 +1,13 @@
+element player {
+    size = (10,10);
+    color = "4268f4";
+}
+
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+
+    element player pacman = new player(15,15);
+}

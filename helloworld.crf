@@ -1,8 +1,6 @@
-
-
 world {
     properties {
-        size = (100,100);
-        color = "ffffff";
+        size = (500,200);
+        color = "1a79e5";
     }
 }

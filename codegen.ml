@@ -28,14 +28,13 @@ let translate (elements, world) =
   and str_t  = L.pointer_type (L.i8_type context) 
   and void_t = L.void_type context in
   let color_t = L.named_struct_type context "color_t" in
-  L.struct_set_body color_t [|str_t|] false;
+  L.struct_set_body color_t [|i32_t; i32_t; i32_t|] false;
   let pair_t = L.named_struct_type context "pair_t" in
   L.struct_set_body pair_t [|i32_t; i32_t|] false;
   let elem_t = L.named_struct_type context "elem_t" in
-  L.struct_set_body elem_t [|pair_t; pair_t; color_t; i32_t; flt_t|] false;
+  L.struct_set_body elem_t [|pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
-  (* TODO: match world struct with the one in c program  *)
-  L.struct_set_body world_t [||] false;
+  L.struct_set_body world_t [|pair_t;str_t|] false;
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -46,8 +45,16 @@ let translate (elements, world) =
     | A.Color -> color_t
   in
 
-  let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
-  let add_e = L.declare_function "add_element" add_e_t the_module in
+  (* let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
+  let add_e = L.declare_function "add_element" add_e_t the_module in *)
+  let world_func_t = L.function_type i32_t [||] in
+  let world_func = L.declare_function "world" world_func_t the_module in
+
+  let init_world_func_type = L.function_type (L.void_type context) [|L.pointer_type world_t|] in
+  let init_world_func = L.declare_function "init_world" init_world_func_type the_module in
+
+  let start_render_func_type = L.function_type (L.void_type context) [||] in
+  let start_render_func = L.declare_function "startRender" start_render_func_type the_module in
 
   (* Helper functions *)
   let get_var_expr var_name var_list = 
@@ -55,6 +62,11 @@ let translate (elements, world) =
       match List.filter func var_list with
         | (t,s,e) :: tl -> e
         | [] -> A.Noexpr
+  in
+
+  let rec string_of_expr = function
+    | A.SLiteral(s) -> s
+    | A.Cr(c) -> string_of_expr c
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -65,14 +77,7 @@ let translate (elements, world) =
     List.fold_left global_var StringMap.empty globals 
   in *)
 
-  (* Declare printf(), which the print built-in function will call *)
-  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-  let printf_func = L.declare_function "printf" printf_t the_module in
-
-  (* Declare the built-in printbig() function *)
-  let printbig_t = L.function_type i32_t [| i32_t |] in
-  let printbig_func = L.declare_function "printbig" printbig_t the_module in
-
+ 
 
 
   (* Define each function (arguments and return type) so we can call it *)
@@ -254,49 +259,80 @@ let translate (elements, world) =
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in *)
 
-  let add_world_props m props builder =
-    let add_prop m (t,n,e) = 
+
+
+  let store_props m props builder =
+    let store_prop m (t,n,e) = 
     let e' = expr builder e in 
     let prop = L.build_alloca (ltype_of_typ t) n builder in
     ignore (L.build_store e' prop builder); 
     StringMap.add n prop m in
 
-    List.fold_left add_prop m props
+    List.fold_left store_prop m props
   in
 
-  let world_start world map = 
-    let name = "world_start" in
-    let func_type = L.function_type (L.pointer_type world_t) [||] in
-    let func = L.define_function name func_type the_module in
-    (StringMap.add name func map, func)
-  in
+  (* let elem_init m element =
+    let elem_name = element.A.ename ^ "_element" in
+    let func_type = L.function_type (L.pointer_type elem_t) [||] in
+    let func_ptr = L.define_function elem_name func_type the_module in 
+    (StringMap.add elem_name func_ptr m, func_ptr)
+  in *)
 
-  let world_start_func world map =
-    let (map, func) = world_start world map in
-    let builder = L.builder_at_end context (L.entry_block func) in
+  (* Store all elements struct pointers in main map *)
+  let store_elements m elem_list builder =
+    let store_element m element =
+      let elem_name = (element.A.ename ^ "_element") in
+      let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
+      
+      let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
+      let size_expr = get_var_expr "size" element.A.properties in 
+      ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
+
+      let color_expr = get_var_expr "color" element.A.properties in
+      let color_str = string_of_expr color_expr in
+      let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
+      let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
+      ignore (L.build_store elem_color_str_ptr color_ptr builder);
+      StringMap.add elem_name elem_ptr m in
+ 
+    List.fold_left store_element m elem_list
+  in
+ 
+
+  let world_start_func world builder =
+  
     let world_ptr = L.build_malloc world_t ("world_ptr") builder in 
     
-    let world_size_ptr = L.build_struct_gep world_ptr 1 ("size_ptr") builder in
+    let world_size_ptr = L.build_struct_gep world_ptr 0 ("size_ptr") builder in
     let size_expr = get_var_expr "size" world.A.properties in 
     ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
-    map
+
+    let color_expr = get_var_expr "color" world.A.properties in
+    let color_str = string_of_expr color_expr in
+    let world_color_str_ptr = L.build_global_stringptr color_str "color_str_ptr" builder in
+    let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
+    ignore (L.build_store world_color_str_ptr color_ptr builder);
+
+    (* ignore (L.build_ret world_ptr builder); *)
+    world_ptr
   in
-  (* 
-    (* TODO: convert hex to rgb *)
-    let world_color_ptr = L.build_struct_gep world_ptr 0 ("color_ptr") builder in
-    let color_expr = get_var_expr "color" world.A.properties in 
-    ignore (L.build_store (expr builder color_expr) world_color_ptr builder); 
-  *)
-    (* ignore (L.build_call) *)
+  
 
-
-  let main_map = world_start world StringMap.empty in 
+  
 
   let main_func_type = L.function_type i32_t [||] in
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
-  (* ignore (L.build_call **the render func** args... ); *)
+  
+  let main_map = store_elements StringMap.empty elements main_func_builder in
+  let world_ptr = world_start_func world main_func_builder in 
+  
+  (* let temp_ptr_world = StringMap.find "world_start" main_map in *)
+  ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
+  ignore (L.build_call world_func [||] "" main_func_builder);
+  
+  (* ignore (L.build_call start_render_func [||] "" main_func_builder);  *)
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
 
 
-  the_module
+the_module

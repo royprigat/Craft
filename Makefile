@@ -1,12 +1,15 @@
 #Craft Makefile in progress
 
-LDFLAGS = lSDL2
+LDFLAGS = lSDL2 
 H_DIR = header_files
 INC_DIR = include
 LIB_DIR = /usr/local/lib
+CFLAGS = -Wall `pkg-config --cflags --libs glib-2.0`
 
 .PHONY : all
-all : craft.native world.o#link c here?
+all : craft.native world.o main.o #link c here?
+
+
 
 .PHONY : craft.native
 craft.native :
