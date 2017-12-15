@@ -60,12 +60,12 @@ type event = {
 (* Elements *)
 type element = {
 	ename: string;
-	properties: var_decl list;
+	e_properties: var_decl list;
 }
 
 (* World *)
 type world = {
-  properties: var_decl list;
+  w_properties: var_decl list;
   init_locals : var_decl list;
   init_body: stmt list;
 }
@@ -157,12 +157,12 @@ let string_of_events event =
 let string_of_elems elem = 
   "\nelement " ^ elem.ename ^ " " ^
   "{\n " ^
-  String.concat " " (List.map string_of_vars elem.properties) ^ 
+  String.concat " " (List.map string_of_vars elem.e_properties) ^ 
   "}\n"
 
 let string_of_world world =
   "\nworld {\nproperties {\n" ^
-  String.concat "" (List.map string_of_vars world.properties) ^ "}\n" ^
+  String.concat "" (List.map string_of_vars world.w_properties) ^ "}\n" ^
   String.concat "" (List.map string_of_vars world.init_locals) ^
   String.concat "" (List.map string_of_stmt world.init_body) ^
   "}\n"
