@@ -1,0 +1,10 @@
+element player1 {
+    size = (5,50);
+}
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+}
