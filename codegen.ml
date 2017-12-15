@@ -34,7 +34,7 @@ let translate (events, elements, world) =
   let pair_t = L.named_struct_type context "pair_t" in
   L.struct_set_body pair_t [|i32_t; i32_t|] false;
   let elem_t = L.named_struct_type context "elem_t" in
-  L.struct_set_body elem_t [|pair_t; pair_t; str_t|] false;
+  L.struct_set_body elem_t [|str_t; pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
 
@@ -254,21 +254,29 @@ let translate (events, elements, world) =
         let (e_typ, e_id, e_typ_check, e_pos) = elem in
         let element = StringMap.find (e_typ ^ "_element") elements_map in
 
+        (* Element struct pointer *)
         let elem_name = (e_id ^ "_" ^ element.A.ename ^ "_element") in
-        let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
+        let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in
         
-        let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
+        (* Element ID *)
+        let elem_id_str_ptr = L.build_global_stringptr e_id (elem_name ^ "_id_str_ptr") builder in
+        let id_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_id_ptr") builder in
+        ignore (L.build_store elem_id_str_ptr id_ptr builder);
+        
+        (* Element size *)
+        let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") builder in
         let size_expr = get_var_expr "size" element.A.properties in 
         ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
 
-
-        let elem_pos_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_pos_ptr") builder in
+        (* Element position *)
+        let elem_pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") builder in
         ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder); 
   
+        (* Element color *)
         let color_expr = get_var_expr "color" element.A.properties in
         let color_str = string_of_expr color_expr in
         let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
-        let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
+        let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") builder in
         ignore (L.build_store elem_color_str_ptr color_ptr builder);
 
 
