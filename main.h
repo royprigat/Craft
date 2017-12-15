@@ -14,7 +14,7 @@ bool init();
 //Loads media
 bool loadMedia();
 
-bool isPressed(int key);
+int isPressed(char* key);
 
 // bool isCollision(struct element *e1, char* e2, )
 

@@ -48,19 +48,22 @@ void test_print(){
 void startRender(){
     shouldStart = true;
 }
-int isPressed(int key){
+int isPressed(char *key){
     int keyId;
 
-    if (key == 1){
+    if (strcmp(key, "UP") == 0){
         keyId = 82;
-    }else if(key == 2){
+    }else if(strcmp(key, "DOWN") == 0){
          keyId = 81;
-    }else if(key == 3){
+    }else if(strcmp(key, "LEFT") == 0){
          keyId = 80;
-    }else if(key == 4) == 0) {
+    }else if(strcmp(key, "RIGHT") == 0) {
          keyId = 79;
-    }else if(key == 5) == 0){
+    }else if(strcmp(key, "SPACE") == 0){
         keyId = 44;
+    }
+    if(keystate == NULL){
+        return 0;
     }
     return keystate[keyId];
 }
