@@ -43,6 +43,11 @@ let translate (events, elements, world) =
     StringMap.add (element.A.ename ^ "_element") element m in
   let elements_map = List.fold_left fill_elem_map StringMap.empty elements in
 
+  (* Global map of events *)
+  let fill_event_map m event =
+    StringMap.add (event.A.evname ^ "_event") event m in
+  let events_map = List.fold_left fill_event_map StringMap.empty events in
+
 
   let ltype_of_typ = function
       A.Int -> i32_t
