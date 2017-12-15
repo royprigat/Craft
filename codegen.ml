@@ -70,6 +70,9 @@ let translate (events, elements, world) =
   let start_render_func_type = L.function_type (L.void_type context) [||] in
   let start_render_func = L.declare_function "startRender" start_render_func_type the_module in
 
+  let is_key_pressed_func_type = L.function_type i1_t [|str_t|] in (*correct return type? Bool or int?*)
+  let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func the_module in
+
   (* Helper functions *)
   let get_var_expr var_name var_list = 
     let func = fun (t,s,e) -> s = var_name in
@@ -205,7 +208,17 @@ let translate (events, elements, world) =
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
 
-    | A.ECall ("add_event", event, args) -> print_string(event); L.const_int i32_t 0
+    | A.ECall ("add_event", event_name, args) -> 
+      let event = StringMap.find (event_name ^ "_event") events_map in
+      (* let condition = (expr builder event.A.condition) in *)
+      (* assume we have keypress-up for now *)
+      
+
+
+
+
+
+
 
     (* | A.Assign (s, e) -> let e' = expr builder e in
       ignore (L.build_store e' (lookup s) builder); e' *)
