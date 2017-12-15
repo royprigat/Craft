@@ -15,13 +15,13 @@ let _ =
     ("-l", Arg.Unit (set_action LLVM_IR), "Print the generated LLVM IR");
     ("-c", Arg.Unit (set_action Compile),
       "Check and print the generated LLVM IR (default)");
-  ] in  
+  ] in
   let usage_msg = "usage: ./craft.native [-a|-l|-c] [file.crf]" in
   let channel = ref stdin in
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
-  (* Semant.check ast; *)
+  Semant.check ast;
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
   | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate ast))
@@ -29,18 +29,18 @@ let _ =
     print_string ("entering compile");
     (* Llvm_analysis.assert_valid_module m; *)
     (* print_string (Llvm.string_of_llmodule m) *)
-    let arg_index = 
+    let arg_index =
       if Array.length Sys.argv == 2 then
         1
       else
         2 in
 
-    let crf_file_in = Sys.argv.(arg_index) in 
+    let crf_file_in = Sys.argv.(arg_index) in
     let index = String.rindex crf_file_in '.' in
     let file_name = String.sub crf_file_in 0 index in
 
 
-    let channel_out = open_out (file_name ^ ".ll") in 
+    let channel_out = open_out (file_name ^ ".ll") in
     fprintf channel_out "%s\n" (Llvm.string_of_llmodule m);
     close_out channel_out;
     let ll_name = file_name ^ ".ll" in
@@ -53,7 +53,3 @@ let _ =
     let command_2 = "gcc -o " ^ exe_name ^ " " ^ s_name ^ " main.o -I /usr/local/include -L/usr/local/lib -lSDL2 `pkg-config --cflags --libs glib-2.0`" in
     (* print_string ("after gcc"); *)
     ignore (Sys.command command_2);
-
-
-   
-
