@@ -9,5 +9,5 @@ world {
         color = "f4f441";
     }
 
-    element player pacman = new player(15,15);
+    element player pacman = new player(100,100);
 }

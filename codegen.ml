@@ -255,6 +255,10 @@ let translate (elements, world) =
         let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
         let size_expr = get_var_expr "size" element.A.properties in 
         ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
+
+
+        let elem_pos_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_pos_ptr") builder in
+        ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder); 
   
         let color_expr = get_var_expr "color" element.A.properties in
         let color_str = string_of_expr color_expr in
@@ -262,10 +266,8 @@ let translate (elements, world) =
         let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
         ignore (L.build_store elem_color_str_ptr color_ptr builder);
 
-        (* let elem_pos_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_pos_ptr") in
-        ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder);  *)
 
-        ignore (L.build_call add_e [|elem_ptr|] builder); builder
+        ignore (L.build_call add_e [|elem_ptr|] "" builder); builder
         
   in
 
