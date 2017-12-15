@@ -304,7 +304,7 @@ let translate (events, elements, world) =
         
         (* Element size *)
         let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") builder in
-        let size_expr = get_var_expr "size" element.A.properties in 
+        let size_expr = get_var_expr "size" element.A.e_properties in 
         ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
 
         (* Element position *)
@@ -312,7 +312,7 @@ let translate (events, elements, world) =
         ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder); 
   
         (* Element color *)
-        let color_expr = get_var_expr "color" element.A.properties in
+        let color_expr = get_var_expr "color" element.A.e_properties in
         let color_str = string_of_expr color_expr in
         let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
         let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") builder in
@@ -351,11 +351,11 @@ let translate (events, elements, world) =
     
     (* World size struct and pointer *)
     let world_size_ptr = L.build_struct_gep world_ptr 0 ("size_ptr") builder in
-    let size_expr = get_var_expr "size" world.A.properties in 
+    let size_expr = get_var_expr "size" world.A.w_properties in 
     ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
 
     (* World color struct and pointer *)
-    let color_expr = get_var_expr "color" world.A.properties in
+    let color_expr = get_var_expr "color" world.A.w_properties in
     let color_str = string_of_expr color_expr in
     let world_color_str_ptr = L.build_global_stringptr color_str "color_str_ptr" builder in
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
