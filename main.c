@@ -29,10 +29,14 @@ void testfn(void* event_fn()){
     event_fn();
 }
 
+void test_print(){
+    printf("%s", "Roses are red\n Violets are blue\n The learning curve is steep\n Screw you");
+}
+
 void startRender(){
     shouldStart = true;
 }
-bool isPressed(char *key){
+int isPressed(char *key){
     int keyId;
 
     if (strcmp(key, "UP") == 0){
@@ -46,11 +50,7 @@ bool isPressed(char *key){
     }else if(strcmp(key, "SPACE") == 0){
         keyId = 44;
     }
-    if(keystate[keyId]){
-        return true;
-    }else{
-        return false;
-    }
+    return keystate[keyId];
 }
 
 void render_element(struct element *e) {
