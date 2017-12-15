@@ -188,7 +188,6 @@ let translate (events, elements, world) =
       | A.Not     -> L.build_not
       ) e' "tmp" builder
 
-    (* TODO: convert hex to rgb  *)
     | A.Cr (e) -> 
       let e' = expr builder e in
       let cr_ptr = L.build_alloca color_t "tmp" builder in

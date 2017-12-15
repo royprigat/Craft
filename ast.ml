@@ -19,6 +19,7 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | Access of string * string
+  | Keypress of expr
   | Call of string * expr list
   | ECall of string * string * expr list
   | Noexpr
@@ -118,6 +119,7 @@ let rec string_of_expr = function
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
+| Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 
 let rec string_of_stmt = function

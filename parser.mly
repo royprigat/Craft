@@ -113,12 +113,12 @@ event_list:
   | event_list event  { $2 :: $1 }
 
 event:
-  EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN KEY_PRS LPAREN expr RPAREN SEMI ACT LBRACE stmt_list RBRACE RBRACE
+  EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN expr SEMI ACT LBRACE stmt_list RBRACE RBRACE
   {{
     evname = $2;
     formals = $4;
-    condition = $11;
-    action = List.rev $16;
+    condition = $9;
+    action = List.rev $13;
   }}
 
 /* Elements */
@@ -176,6 +176,7 @@ expr:
   | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
   | LPAREN expr RPAREN 			                      { $2 }
   | LPAREN expr COMMA expr RPAREN                 { Pr($2,$4) }
+  | KEY_PRS LBRACE expr RBRACE                    { Keypress($3) }
 
 literals:
 	  INT_LITERAL 					        { ILiteral($1) }
