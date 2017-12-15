@@ -18,6 +18,8 @@ module E = Exceptions
 
 module StringMap = Map.Make(String)
 
+
+
 let translate (elements, world) =
   let context = L.global_context () in
   let the_module = L.create_module context "Craft"
@@ -35,6 +37,12 @@ let translate (elements, world) =
   L.struct_set_body elem_t [|pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
+
+  (* Global map of elements  *)
+  let fill_elem_map m element = 
+    StringMap.add (element.A.ename ^ "_element") element m in
+  let elements_map = List.fold_left fill_elem_map StringMap.empty elements in
+
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -212,7 +220,7 @@ let translate (elements, world) =
   in
 
   (* Store all elements struct pointers in main map *)
-  let store_elements m elem_type elem_n builder =
+  (* let store_elements m elem_type elem_n builder =
     let store_element m element =
       (* if elem_type = element.A.ename then *)
        let elem_name = (elem_n ^ "_" ^ element.A.ename ^ "_element") in
@@ -231,21 +239,33 @@ let translate (elements, world) =
        in
    
     List.fold_left store_element m elements
-  in
-
+  in *)
   
   (* Build the code for the given statement; return the builder for the statement's successor *)
   let rec stmt builder = function
         A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
       | A.New elem -> 
-        let (t, name, t_check, pos) = elem in
-        let map = store_elements StringMap.empty t name builder in
-        let elem_ptr = StringMap.find (name ^ "_" ^ t ^ "_element") map in
-        let elem_pos_ptr = L.build_struct_gep elem_ptr 1 (name ^ "_pos_ptr") in
+        let (e_typ, e_id, e_typ_check, e_pos) = elem in
+        let element = StringMap.find (e_typ ^ "_element") elements_map in
 
-        ignore (L.build_store (expr builder pos) elem_pos_ptr builder);
-        ignore (L.build_call add_e [|elem_ptr|] builder);
+        let elem_name = (e_id ^ "_" ^ element.A.ename ^ "_element") in
+        let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
+        
+        let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
+        let size_expr = get_var_expr "size" element.A.properties in 
+        ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
+  
+        let color_expr = get_var_expr "color" element.A.properties in
+        let color_str = string_of_expr color_expr in
+        let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
+        let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
+        ignore (L.build_store elem_color_str_ptr color_ptr builder);
+
+        (* let elem_pos_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_pos_ptr") in
+        ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder);  *)
+
+        ignore (L.build_call add_e [|elem_ptr|] builder); builder
         
   in
 
@@ -269,14 +289,6 @@ let translate (elements, world) =
     List.fold_left store_prop m props
   in
 
-  (* let elem_init m element =
-    let elem_name = element.A.ename ^ "_element" in
-    let func_type = L.function_type (L.pointer_type elem_t) [||] in
-    let func_ptr = L.define_function elem_name func_type the_module in 
-    (StringMap.add elem_name func_ptr m, func_ptr)
-  in *)
-
-
  
   (* CREATE WORLD *)
   let world_start_func world builder =
@@ -295,6 +307,7 @@ let translate (elements, world) =
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
     ignore (L.build_store world_color_str_ptr color_ptr builder);
 
+    (* World statements *)
     let world_stmt_list = world.A.init_body in
     List.fold_left stmt builder world_stmt_list;
 
@@ -303,13 +316,11 @@ let translate (elements, world) =
   in
   
 
-  
-
+  (* MAIN FUNCTION *)
   let main_func_type = L.function_type i32_t [||] in
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
   
-  (* let main_map = store_elements StringMap.empty elements main_func_builder in *)
   let world_ptr = world_start_func world main_func_builder in 
   
   ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
