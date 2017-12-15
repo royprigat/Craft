@@ -31,6 +31,7 @@ struct color{
 };
 
 struct element{
+    char * name;
     struct tuple size;
     struct tuple position;
     char* el_color;
