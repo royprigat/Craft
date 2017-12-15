@@ -176,7 +176,7 @@ expr:
   | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
   | LPAREN expr RPAREN 			                      { $2 }
   | LPAREN expr COMMA expr RPAREN                 { Pr($2,$4) }
-  | KEY_PRS LBRACE expr RBRACE                    { Keypress($3) }
+  | KEY_PRS LPAREN expr RPAREN                    { Keypress($3) }
 
 literals:
 	  INT_LITERAL 					        { ILiteral($1) }
