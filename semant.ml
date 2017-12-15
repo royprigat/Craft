@@ -5,7 +5,9 @@ open Ast
 (* module E = Exceptions *)
 module StringMap = Map.Make(String)
 
-let check (elements, world) =
+let check (events, elements, world) =
+
+(* HELPERS *)
 
   (* Raise an exception if the given list has a duplicate *)
   let report_duplicate exceptf list =
@@ -16,19 +18,41 @@ let check (elements, world) =
       in helper (List.sort compare list)
   in
 
-(* Raise an exception if a given binding is to a void type *)
-(*  let check_not_void exceptf = function
-        (Void, n) -> raise (Failure (exceptf n))
-      | _ -> ()
-    in
-
+  (* Raise an exception of the given rvalue type cannot be assigned to
+       the given lvalue type *)
   let check_assign lvaluet rvaluet err =
     if lvaluet == rvaluet then lvaluet else raise err
   in
 
-(* CHECK ELEMENTS *)
+  (* build a map given a list of members *)
+  let memMap members =
+    List.fold_left (fun m (t, n, e) -> StringMap.add n t m) StringMap.empty members
+  in
 
-List.iter (check_not_void (fun n -> "illegal void global " ^ n)) elements;
+  (* check if a given member type exists *)
+  let exist s t m =
+    try
+      let myT = StringMap.find s m
+      in
+      if myT != t then raise (Failure ("Inconsistent types"))
+      with Not_found -> raise (Failure ("You haven't defined " ^ s))
+    in
+
+  (* get variable name *)
+let varName = function (_, n, _) -> n in
+
+(*
+(* CHECK ELEMENTS *)
+let check_elements elements =
+
+  (* check required properties *)
+  let elMems = memMap elements.properties in
+        exist "color" Color elMems;
+        exist "size" Pair elMems;
+  in
+
+check_elements elements;
+
 
 report_duplicate (fun n -> "duplicate global " ^ n) (List.map snd elements); *)
 
@@ -41,28 +65,14 @@ let function_decl s = try StringMap.find s function_decls
        with Not_found -> raise (Failure ("unrecognized function " ^ s))
 in*)
 
-(* build a map given a list of members *)
-let memTypes memz =
-  List.fold_left (fun m (t, n, e) -> StringMap.add n t m) StringMap.empty memz
-in
-
-(* check if a given member type exists *)
-let checkMemExists s t m =
-  try
-    let myT = StringMap.find s m
-    in
-    if myT != t then raise (Failure ("Inconsistent types"))
-    with Not_found -> raise (Failure ("You haven't defined " ^ s))
-  in
-
 
 (*  CHECK WORLD *)
   let check_world world =
 
     (* check required properties *)
-    let myMems = memTypes world.properties in
-          checkMemExists "color" Color myMems;
-          checkMemExists "size" Pair myMems;
+    let wMems = memMap world.properties in
+          exist "color" Color wMems;
+          exist "size" Pair wMems;
     in
     (* let mems = memTypes world.properties in *)
 (*
@@ -71,10 +81,17 @@ let checkMemExists s t m =
 
         (* check members *)
         List.iter (checkVarInit symbols "" ) world.properties;
+*)
+        (* check for duplicate world properties *)
+        report_duplicate (fun n -> "Duplicate properties member <" ^ n ^ "> in your world")
+          (List.map varName world.properties);
 
-        (* check for duplicate init members *)
-        reportDuplicate (fun n -> "Duplicate init function member " ^ n ^ " in your world")
-          (List.map varDeclName world.init_locals);
+        report_duplicate (fun n -> "Duplicate local variable <" ^ n ^ "> in your world")
+          (List.map varName world.init_locals);
+
+(*
+        (* check for correct type assignment in world *)
+        check_assign ()
 
         (* check init members and add to symbols list *)
         let symbols =  List.fold_left var symbols world.init_locals in
