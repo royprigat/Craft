@@ -146,7 +146,7 @@ void close()
 
 int world( )
 {
-    testfn();
+    // testfn();
     //Start up SDL and create window
     if( !init() )
     {
