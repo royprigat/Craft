@@ -206,8 +206,11 @@ let translate (events, elements, world) =
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
 
+    | A.ECall ("add_event", event, args) -> print_string(event); L.const_int i32_t 0
+
     (* | A.Assign (s, e) -> let e' = expr builder e in
       ignore (L.build_store e' (lookup s) builder); e' *)
+    (* | A.Call ("add_event", [e1,e2]) -> *)
 
     (* | A.Call (f, act) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
@@ -279,7 +282,7 @@ let translate (events, elements, world) =
         let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") builder in
         ignore (L.build_store elem_color_str_ptr color_ptr builder);
 
-
+        (* Call add_element function *)
         ignore (L.build_call add_e [|elem_ptr|] "" builder); builder
         
   in
