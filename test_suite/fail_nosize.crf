@@ -1,0 +1,5 @@
+world {
+    properties {
+        color = "1a79e5";
+    }
+}

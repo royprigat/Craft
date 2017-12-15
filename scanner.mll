@@ -58,19 +58,15 @@ rule token = parse
   | "event"      { EVENT }
   | "element"    { ELEMENT }
   | "world"      { WORLD}
-  | "event"      { EVENT }
   | "def"        { DEF }
 
-
   (* I/O Keywords *)
-  (* | "key_up"    { KEY_UP }
-  | "key_down"  { KEY_DOWN }
-  | "key_id"    { KEY_ID } *)
+  | "key_press" { KEY_PRS }
 
 
   | ['0'-'9']+ as lxm                                        { INT_LITERAL(int_of_string lxm) }
   | ['0'-'9']*'.'['0'-'9']+ | ['0'-'9']+'.'['0'-'9']* as lxm { FLOAT_LITERAL(float_of_string lxm)}
-  | '"' ((['a'-'z' 'A'-'Z' '0'-'9'])* as lxm) '"'                    { STRING_LITERAL(lxm) }
+  | '"' ((['a'-'z' 'A'-'Z' '0'-'9'])* as lxm) '"'            { STRING_LITERAL(lxm) }
   | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm   { ID(lxm) }
   | eof                                                      { EOF }
   | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }

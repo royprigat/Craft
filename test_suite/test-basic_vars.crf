@@ -1,7 +1,9 @@
 world {
-  size = (100,100);
+  properties {
+    size = (100,100);
+    color = "ffffff";
+  }
   int x = 5;
-  color = "ffffff";
   float a = 3.4;
   bool t = true;
 }

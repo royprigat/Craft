@@ -10,6 +10,7 @@
 %token INT FLOAT BOOL VOID TRUE FALSE
 %token SIZE DIRECT COLOR PAIR SPEED POS NEW ACT COND
 %token EVENT DEF PROPS ELEMENT WORLD START
+%token KEY_PRS
 
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -37,7 +38,7 @@
 
 /* Entry point */
 program:
-  element_list world EOF { (List.rev $1, $2) }
+  event_list element_list world EOF { (List.rev $1, List.rev $2, $3) }
 
 /* Primitive types */
 typ:
@@ -83,6 +84,14 @@ formals_list:
     typ ID                     { [($1,$2)] }
   | formals_list COMMA typ ID  { ($3,$4) :: $1 }
 
+actuals_opt:
+    /* nothing */ { [] }
+  | actuals_list  { List.rev $1 }
+
+actuals_list:
+    expr                    { [$1] }
+  | actuals_list COMMA expr { $3 :: $1 }
+
 /* Properties */
 property_list:            
   { [] }
@@ -92,6 +101,25 @@ property:
     var_decl                 { $1 }
 	| SIZE ASSIGN expr SEMI 	 { (Pair, "size", $3) }
 	| COLOR ASSIGN expr SEMI 	 { (Color, "color", $3) }
+
+/* Event arguments */
+event_formals_list:
+    ID ID                           { [($1,$2)] }
+  | event_formals_list COMMA ID ID  { ($3,$4) :: $1 }
+
+/* Events */
+event_list:
+  { [] }
+  | event_list event  { $2 :: $1 }
+
+event:
+  EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN KEY_PRS LPAREN expr RPAREN SEMI ACT LBRACE stmt_list RBRACE RBRACE
+  {{
+    evname = $2;
+    formals = $4;
+    condition = $11;
+    action = List.rev $16;
+  }}
 
 /* Elements */
 element_list: 
@@ -144,6 +172,7 @@ expr:
   | expr OR expr 					        { Binop($1, Or, $3) }
   | NOT expr  					          { Unop(Not, $2) }
   | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
+  | ID LPAREN actuals_opt RPAREN  { Call($1, $3) }
   | LPAREN expr RPAREN 			      { $2 }
   | LPAREN expr COMMA expr RPAREN { Pr($2,$4) }
 
