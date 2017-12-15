@@ -19,7 +19,9 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | Access of string * string
+  | Keypress of expr
   | Call of string * expr list
+  | ECall of string * string * expr list
   | Noexpr
 
 type element_decl = string * string * string * expr
@@ -41,7 +43,6 @@ type event_formal = string * string
 
 (* Function declaration *)
 type func_decl = {
-  typ : typ;
 	fname : string;
 	formals : bind list;
 	locals : var_decl list;
@@ -117,6 +118,8 @@ let rec string_of_expr = function
 | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+| ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
+| Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 
 let rec string_of_stmt = function

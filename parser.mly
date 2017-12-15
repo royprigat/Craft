@@ -62,18 +62,18 @@ element_decl:
   ELEMENT ID ID ASSIGN NEW ID expr SEMI  { New($2,$3,$6,$7) }
 
 /* Functions */
-/* func_decl_list:                   
+func_decl_list:                   
   { [] }
   | func_decl_list func_decl 	{ $2 :: $1 }
 
 func_decl:
   DEF ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
   {{
-      fname = $2;
-			formals = $4;
-			locals = List.rev $7;
-      body = List.rev $8;
-  }} */
+    fname = $2;
+		formals = $4;
+		locals = List.rev $7;
+    body = List.rev $8;
+  }}
 
 /* Function arguments */
 formals_list_opt:             
@@ -113,12 +113,12 @@ event_list:
   | event_list event  { $2 :: $1 }
 
 event:
-  EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN KEY_PRS LPAREN expr RPAREN SEMI ACT LBRACE stmt_list RBRACE RBRACE
+  EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN expr SEMI ACT LBRACE stmt_list RBRACE RBRACE
   {{
     evname = $2;
     formals = $4;
-    condition = $11;
-    action = List.rev $16;
+    condition = $9;
+    action = List.rev $13;
   }}
 
 /* Elements */
@@ -157,24 +157,26 @@ stmt:
 
 /* Expressions */
 expr:
-    literals                      { $1 }
-	| expr PLUS expr                { Binop($1, Add, $3) }
-  | expr MINUS expr               { Binop($1, Sub, $3) }
-  | expr TIMES expr 				      { Binop($1, Mult, $3) }
-  | expr DIVIDE expr 				      { Binop($1, Div, $3) }
-  | expr EQ expr 					        { Binop($1, Equal, $3) }
-  | expr NEQ expr 				        { Binop($1, Neq, $3) }
-  | expr LT expr  			 	        { Binop($1, Less, $3) }
-  | expr LEQ expr  				        { Binop($1, Leq, $3) }
-  | expr GT expr 					        { Binop($1, Greater, $3) }
-  | expr GEQ expr 				        { Binop($1, Geq, $3) }
-  | expr AND expr 				        { Binop($1, And, $3) }
-  | expr OR expr 					        { Binop($1, Or, $3) }
-  | NOT expr  					          { Unop(Not, $2) }
-  | MINUS expr %prec NEG 		      { Unop(Neg, $2) }
-  | ID LPAREN actuals_opt RPAREN  { Call($1, $3) }
-  | LPAREN expr RPAREN 			      { $2 }
-  | LPAREN expr COMMA expr RPAREN { Pr($2,$4) }
+    literals                                      { $1 }
+	| expr PLUS expr                                { Binop($1, Add, $3) }
+  | expr MINUS expr                               { Binop($1, Sub, $3) }
+  | expr TIMES expr 				                      { Binop($1, Mult, $3) }
+  | expr DIVIDE expr 				                      { Binop($1, Div, $3) }
+  | expr EQ expr 					                        { Binop($1, Equal, $3) }
+  | expr NEQ expr 				                        { Binop($1, Neq, $3) }
+  | expr LT expr  			 	                        { Binop($1, Less, $3) }
+  | expr LEQ expr  				                        { Binop($1, Leq, $3) }
+  | expr GT expr 					                        { Binop($1, Greater, $3) }
+  | expr GEQ expr 				                        { Binop($1, Geq, $3) }
+  | expr AND expr 				                        { Binop($1, And, $3) }
+  | expr OR expr 					                        { Binop($1, Or, $3) }
+  | NOT expr  					                          { Unop(Not, $2) }
+  | MINUS expr %prec NEG 		                      { Unop(Neg, $2) }
+  | ID LPAREN actuals_opt RPAREN                  { Call($1, $3) }
+  | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
+  | LPAREN expr RPAREN 			                      { $2 }
+  | LPAREN expr COMMA expr RPAREN                 { Pr($2,$4) }
+  | KEY_PRS LBRACE expr RBRACE                    { Keypress($3) }
 
 literals:
 	  INT_LITERAL 					        { ILiteral($1) }
@@ -185,5 +187,3 @@ literals:
 	| ID  			                    { Id($1) }
   | COLOR                         { Id("color") }
   | SIZE                          { Id("size") }
-
-
