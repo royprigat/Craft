@@ -6,6 +6,8 @@ int SCREEN_HEIGHT = 480;
 
 const Uint8 *keystate = NULL;
 
+GSList* element_list;
+
 //Starts up SDL and creates window
 bool init();
 
@@ -32,8 +34,8 @@ struct element{
     struct tuple size;
     struct tuple position;
     char* el_color;
-    int direction;
-    float speed;
+    // int direction;
+    // float speed;
 };
 
 struct world{

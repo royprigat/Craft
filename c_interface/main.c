@@ -2,7 +2,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
-bool shouldStart = false;
+bool shouldStart = true;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
@@ -47,11 +47,12 @@ void init_world(struct world *temp){
     SCREEN_HEIGHT = w->size.right;
 }
 void add_element(struct element *e){
-    // w ->list = g_slist_append(w ->list, e);
+    element_list = g_slist_append(element_list, e);
 }
 
 void delete_element(struct element *e){
-    
+    free(e->el_color);
+    free(e);
 }
 
 
@@ -143,7 +144,7 @@ int world()
         {
             //Apply the image
             // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-            SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
+            SDL_FillRect(gScreenSurface, NULL, (int)strtol("ffffff", NULL, 16));
             // Update the surface
             SDL_UpdateWindowSurface( gWindow );
 
@@ -151,9 +152,17 @@ int world()
             SDL_Delay( 2000 );
         }
 
-        struct element ele = {70, 70, 10, 10, "aabbcc", 1, 1};
-        // list = g_slist_append(list, &ele);
-        render_element(&ele);
+        // struct element ele = {20, 20, 10, 10, "aabbcc", 1, 1};
+        // struct element ele1 = {20, 20, 70, 70, "bbbbbb", 1, 1};
+        // element_list = g_slist_append(element_list, &ele);
+        // element_list = g_slist_append(element_list, &ele1);
+        GSList* iterator = NULL;
+        // render_element(&ele);
+        for (iterator = element_list; iterator; iterator = iterator->next)
+        {
+            render_element((struct element*)iterator->data);
+        }
+        
         SDL_UpdateWindowSurface( gWindow );
         //Event handler
         SDL_Event e;
