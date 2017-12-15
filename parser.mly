@@ -130,14 +130,14 @@ element:
 	ELEMENT ID LBRACE property_list RBRACE
   {{ 
     ename = $2;
-    properties = List.rev $4; 
+    e_properties = List.rev $4; 
   }}
 
 /* World */
 world:
 	WORLD LBRACE PROPS LBRACE property_list RBRACE var_decl_list stmt_list RBRACE   
 	{{
-    properties = List.rev $5;
+    w_properties = List.rev $5;
     init_locals = List.rev $7;
     init_body = List.rev $8;
 	}}
