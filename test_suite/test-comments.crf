@@ -1,8 +1,9 @@
 #
 # world {
-#   size = (100,100);
-#   color = "ffffff";
-#
+#   properties {
+#     size = (100,100);
+#     color = "ffffff";
+#   }
 #
 # }
 #
