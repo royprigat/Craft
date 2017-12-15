@@ -58,6 +58,11 @@ let translate (events, elements, world) =
     | A.Color -> color_t
   in
 
+
+  (* Using it for testing *)
+  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+  let printf_func = L.declare_function "printf" printf_t the_module in
+
   let add_e_t = L.function_type (L.void_type context) [| (L.pointer_type elem_t) |] in
   let add_e = L.declare_function "add_element" add_e_t the_module in
 
@@ -70,8 +75,11 @@ let translate (events, elements, world) =
   let start_render_func_type = L.function_type (L.void_type context) [||] in
   let start_render_func = L.declare_function "startRender" start_render_func_type the_module in
 
-  let is_key_pressed_func_type = L.function_type i1_t [|str_t|] in (*correct return type? Bool or int?*)
-  let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func the_module in
+  let c_test_func_type = L.function_type (L.void_type context) [| L.pointer_type (L.function_type (L.void_type context) [||]) |] in
+  let c_test_func = L.declare_function "testfn" c_test_func_type the_module in
+
+  (* let is_key_pressed_func_type = L.function_type i1_t [|str_t|] (*in correct return type? Bool or int?*)
+  let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func the_module in *)
 
   (* Helper functions *)
   let get_var_expr var_name var_list = 
@@ -140,6 +148,12 @@ let translate (events, elements, world) =
   (* let lookup n = try StringMap.find n local_vars
                    with Not_found -> StringMap.find n global_vars
   in *)
+
+  let print_test_func builder = 
+    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
+    ignore (L.build_call printf_func [|int_format_str; (L.const_string context "test")|] "" builder);
+  in
+
 
     (* Construct code for an expression; return its value *)
   let rec expr builder = function
@@ -212,6 +226,16 @@ let translate (events, elements, world) =
       let event = StringMap.find (event_name ^ "_event") events_map in
       (* let condition = (expr builder event.A.condition) in *)
       (* assume we have keypress-up for now *)
+      let test_event_func_type = L.function_type (L.void_type context) [||] in
+      let test_event_func = L.declare_function "test_event_func" test_event_func_type the_module in
+      (* how do we now put things for this function to do if it's called if we are implementing it and not C  *)
+      let builder = L.builder_at_end context (L.entry_block test_event_func) in
+
+      ignore (L.build_call c_test_func [|test_event_func|] "" builder);
+      ignore (L.build_ret_void builder); 
+      print_test_func builder; (*test*)
+      L.const_int i32_t 0 (*dummy return value*)
+
       
 
 
@@ -280,7 +304,7 @@ let translate (events, elements, world) =
         
         (* Element size *)
         let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") builder in
-        let size_expr = get_var_expr "size" element.A.properties in 
+        let size_expr = get_var_expr "size" element.A.e_properties in 
         ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
 
         (* Element position *)
@@ -288,7 +312,7 @@ let translate (events, elements, world) =
         ignore (L.build_store (expr builder e_pos) elem_pos_ptr builder); 
   
         (* Element color *)
-        let color_expr = get_var_expr "color" element.A.properties in
+        let color_expr = get_var_expr "color" element.A.e_properties in
         let color_str = string_of_expr color_expr in
         let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
         let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") builder in
@@ -327,11 +351,11 @@ let translate (events, elements, world) =
     
     (* World size struct and pointer *)
     let world_size_ptr = L.build_struct_gep world_ptr 0 ("size_ptr") builder in
-    let size_expr = get_var_expr "size" world.A.properties in 
+    let size_expr = get_var_expr "size" world.A.w_properties in 
     ignore (L.build_store (expr builder size_expr) world_size_ptr builder);
 
     (* World color struct and pointer *)
-    let color_expr = get_var_expr "color" world.A.properties in
+    let color_expr = get_var_expr "color" world.A.w_properties in
     let color_str = string_of_expr color_expr in
     let world_color_str_ptr = L.build_global_stringptr color_str "color_str_ptr" builder in
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
