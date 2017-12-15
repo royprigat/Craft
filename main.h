@@ -16,6 +16,8 @@ bool loadMedia();
 
 bool isPressed(int keyId);
 
+// bool isCollision(struct element *e1, char* e2, )
+
 //Frees media and shuts down SDL
 void close();
 

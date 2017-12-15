@@ -2,6 +2,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 bool shouldStart = true;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
@@ -23,12 +24,33 @@ struct world *w;
 
 // SDL_Renderer* renderer = NULL;
 
+void testfn(void* event_fn()){
+    printf("Running test fn");
+    event_fn();
+}
 
 void startRender(){
     shouldStart = true;
 }
-bool isPressed(int keyId){
-    return keystate[keyId];
+bool isPressed(char *key){
+    int keyId;
+
+    if (strcmp(key, "UP") == 0){
+        keyId = 82;
+    }else if(strcmp(key, "DOWN") == 0){
+         keyId = 81;
+    }else if(strcmp(key, "LEFT") == 0){
+         keyId = 80;
+    }else if(strcmp(key, "RIGHT") == 0) {
+         keyId = 79;
+    }else if(strcmp(key, "SPACE") == 0){
+        keyId = 44;
+    }
+    if(keystate[keyId]){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 void render_element(struct element *e) {
@@ -124,9 +146,7 @@ void close()
 
 int world( )
 {
-    
-    while(!shouldStart){
-    }
+    testfn();
     //Start up SDL and create window
     if( !init() )
     {
