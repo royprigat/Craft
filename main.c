@@ -29,6 +29,10 @@ void testfn(void* event_fn()){
     event_fn();
 }
 
+void test_print(){
+    printf("%s", "Roses are red\n Violets are blue\n The learning curve is steep\n Screw you");
+}
+
 void startRender(){
     shouldStart = true;
 }
