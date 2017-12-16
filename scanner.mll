@@ -53,6 +53,7 @@ rule token = parse
   | "new"       { NEW }
   | "action"    { ACT }
   | "condition" { COND }
+  | "return"    { RETURN }
 
   | "properties" { PROPS }
   | "event"      { EVENT }

@@ -43,6 +43,7 @@ type event_formal = string * string
 
 (* Function declaration *)
 type func_decl = {
+  typ : typ;
 	fname : string;
 	formals : bind list;
 	locals : var_decl list;
@@ -71,7 +72,7 @@ type world = {
 }
 
 (* Program *)
-type program = event list * element list * world
+type program = func_decl list * event list * element list * world
 
 
 
@@ -141,8 +142,9 @@ let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 let string_of_event_formals (id1, id2) = id1 ^ " " ^ id2
 
 let string_of_fdecl fdecl =
-  "\ndef " ^ " " ^ fdecl.fname ^ "(" ^ String.concat ", "
-  (List.map string_of_args fdecl.formals) ^ ")\n{\n" ^
+  "\ndef " ^ string_of_typ fdecl.typ ^ " " ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
+  ") {\n" ^
   String.concat "" (List.map string_of_vars fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
@@ -150,7 +152,7 @@ let string_of_fdecl fdecl =
 let string_of_events event =
   "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
   (List.map string_of_event_formals event.formals) ^ ") " ^
-  "{\n " ^ "condition = " ^ "key_press(" ^ (string_of_expr event.condition) ^ ");\n" ^
+  "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"
 
@@ -167,7 +169,8 @@ let string_of_world world =
   String.concat "" (List.map string_of_stmt world.init_body) ^
   "}\n"
   
-let string_of_program (events,elems,world) =
+let string_of_program (funcs,events,elems,world) =
+  String.concat " " (List.map string_of_fdecl funcs) ^
   String.concat " " (List.map string_of_events events) ^
   String.concat " " (List.map string_of_elems elems) ^
   string_of_world world

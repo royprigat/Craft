@@ -24,6 +24,18 @@ struct world *w;
 
 // SDL_Renderer* renderer = NULL;
 
+int doElementsCollide(struct element *e1, struct element *e2){
+
+    if(e1->position.left > e2->position.left + e2->position.left || 
+       e1->position.left + e1->position.left > e2->position.left ||
+       e1->position.right > e2->position.right + e2->position.right){
+        return 1;
+    }
+
+    return 0;
+
+}
+
 void testfn(void* event_fn()){
     printf("Running test fn");
     event_fn();
@@ -36,8 +48,9 @@ void test_print(){
 void startRender(){
     shouldStart = true;
 }
-bool isPressed(char *key){
+int isPressed(char *key){
     int keyId;
+    printf("%s\n",key );
 
     if (strcmp(key, "UP") == 0){
         keyId = 82;
@@ -50,11 +63,10 @@ bool isPressed(char *key){
     }else if(strcmp(key, "SPACE") == 0){
         keyId = 44;
     }
-    if(keystate[keyId]){
-        return true;
-    }else{
-        return false;
+    if(keystate == NULL){
+        return 0;
     }
+    return keystate[keyId];
 }
 
 void render_element(struct element *e) {

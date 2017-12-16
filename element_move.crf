@@ -1,3 +1,11 @@
+def int test(int a, int b) {
+  	int x = x + a;
+    if (x < 0) {
+        x = -x;
+    }
+    return x;
+}
+
 event move_up(player p) {
     condition = key_press("UP");
     action {

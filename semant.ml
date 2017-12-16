@@ -5,7 +5,7 @@ open Ast
 module E = Exceptions
 module StringMap = Map.Make(String)
 
-let check (events, elements, world) =
+let check (funcs, events, elements, world) =
 
 (* HELPERS *)
 
