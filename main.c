@@ -87,11 +87,29 @@ void add_element(struct element *e){
     element_list = g_slist_append(element_list, e);
 }
 
-void delete_element(struct element *e){
-    free(e->el_color);
-    free(e);
-}
+// void delete_element(struct element *e){
+//     element_list = g_list_remove(element_list. e);
+//     free(e->el_color);
+//     free(e);
+// }
 
+void delete_element(char *name){
+    struct element *e = NULL;
+    GSList* iterator = NULL;
+        // render_element(&ele);
+        for (iterator = element_list; iterator; iterator = iterator->next)
+        {
+            e = (struct element*)iterator->data;
+            if(strcmp(e.name, name)!=0){
+                e = NULL;
+            }
+        }
+    if(e !=NULL){
+        element_list = g_list_remove(element_list. e);
+        free(e->el_color);
+        free(e);
+    }
+}
 
 bool init()
 {   
@@ -228,6 +246,7 @@ int world( )
             }
 
             keystate = SDL_GetKeyboardState(NULL);
+            SDL_Delay(5);
 
             // printf("%d ", SDLK_LEFT);
         }
