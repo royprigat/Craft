@@ -173,6 +173,8 @@ expr:
   | expr OR expr 					                        { Binop($1, Or, $3) }
   | NOT expr  					                          { Unop(Not, $2) }
   | MINUS expr %prec NEG 		                      { Unop(Neg, $2) }
+  | expr ASSIGN expr                              { Assign($1, $3) }
+  | ID PERIOD POS PERIOD expr                     { PosAccess($1, $5) }
   | ID LPAREN actuals_opt RPAREN                  { Call($1, $3) }
   | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
   | LPAREN expr RPAREN 			                      { $2 }
