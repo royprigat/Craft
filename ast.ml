@@ -19,6 +19,7 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | Access of string * string
+  | PosAccess of string * expr
   | Keypress of expr
   | Call of string * expr list
   | ECall of string * string * expr list
@@ -116,10 +117,11 @@ let rec string_of_expr = function
 | Binop(e1, o, e2) ->
   string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
 | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-| Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
+| Assign(v, e) -> v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
+| PosAccess(s,e) -> s ^ ".pos." ^ string_of_expr e
 | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 

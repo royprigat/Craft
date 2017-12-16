@@ -37,8 +37,6 @@ let translate (funcs, events, elements, world) =
   L.struct_set_body elem_t [|str_t; pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
- (*  let s_struct_t = L.named_struct_type context "string_struct" in
-  L.struct_set_body s_struct_t [|str_t|] false; *)
 
   (* Global map of elements  *)
   let fill_elem_map m element = 
@@ -55,9 +53,8 @@ let translate (funcs, events, elements, world) =
       A.Int -> i32_t
     | A.Float -> flt_t
     | A.Bool -> i1_t
-    | A.Void -> void_t
-    | A.Pair -> pair_t
-    | A.Color -> color_t
+    | A.Pr -> pair_t
+    | A.Cr -> color_t
   in
 
 
@@ -100,67 +97,53 @@ let translate (funcs, events, elements, world) =
     | A.Keypress(s) -> string_of_expr s
   in
 
-  (* Declare each global variable; remember its value in a map *)
-  (* let global_vars =
-  let global_var m (t, n) =
-      let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals 
-  in *)
 
- 
+
 
 
   (* Define each function (arguments and return type) so we can call it *)
-  (* let function_decls =
-  let function_decl m fdecl =
+  let function_decls =
+    let function_decl m fdecl =
       let name = fdecl.A.fname
       and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
-      in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
-      StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+      in 
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+      StringMap.add name (L.define_function name ftype the_module, fdecl) m 
+    in
     List.fold_left function_decl StringMap.empty functions 
-  in *)
-
-  (* let element_decls = 
-  let element_decl m eldecl =
-      let name = eldecl.A.ename in
-        let eltype = L.element_type (ltype_of_typ eldecl.A.typ) formal_types in
-      StringMap.add name (L.define_element name eltype the_module, eldecl) m in
-    List.fold_left element_decl StringMap.empty elements 
-  in *)
-
+  in
+  
   (* Fill in the body of the given function *)
-  (* let build_function_body fdecl =
+  let build_function_body fdecl =
     let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
-    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder 
-  in *)
-    
+    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
+ 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
-  (* let local_vars =
-  let add_formal m (t, n) p = L.set_value_name n p;
-    let local = L.build_alloca (ltype_of_typ t) n builder in
-    ignore (L.build_store p local builder);
-    StringMap.add n local m 
-  in *)
+    let local_vars =
+      let add_formal m (t, n) p = L.set_value_name n p;
+      let local = L.build_alloca (ltype_of_typ t) n builder in
+        ignore (L.build_store p local builder);
+        StringMap.add n local m 
+    in
 
+      let add_local m (t, n) =
+  let local_var = L.build_alloca (ltype_of_typ t) n builder
+  in StringMap.add n local_var m in
 
-
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+          (Array.to_list (L.params the_function)) in
+      List.fold_left add_local formals fdecl.A.locals in
 
     (* Return the value for a variable or formal argument *)
-  (* let lookup n = try StringMap.find n local_vars
+    let lookup n = try StringMap.find n local_vars
                    with Not_found -> StringMap.find n global_vars
-  in *)
-(* 
-  let print_test_func builder = 
-    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
-    ignore (L.build_call printf_func [|int_format_str; (L.const_int i32_t 23)|] "" builder);
-  in *)
+    in 
 
-
+ 
     (* Construct code for an expression; return its value *)
   let rec expr builder = function
       A.ILiteral i -> L.const_int i32_t i
@@ -229,6 +212,12 @@ let translate (funcs, events, elements, world) =
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
 
+   (*  | A.Assign (e1, e2) ->
+      (match e1 with
+        |A.Id (s) -> L.build_store 
+
+      ) *)
+
     | A.ECall ("add_event", event_name, args) -> 
       let event = StringMap.find (event_name ^ "_event") events_map in
       (* let condition = (expr builder event.A.condition) in (*condition is now "UP"*) *)
@@ -268,19 +257,7 @@ let translate (funcs, events, elements, world) =
 
 
 
-
-
-
-    (* | A.Assign (s, e) -> let e' = expr builder e in
-      ignore (L.build_store e' (lookup s) builder); e' *)
-    (* | A.Call ("add_event", [e1,e2]) -> *)
-
-    (* | A.Call (f, act) ->
-      let (fdef, fdecl) = StringMap.find f function_decls in
-      let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-      let result = (match fdecl.A.typ with A.Void -> "" *)
-    (* | _ -> f ^ "_result") in
-      L.build_call fdef (Array.of_list actuals) result builder *)
+m
   in
 
   (* Invoke "f builder" if the current block doesn't already have a terminal (e.g., a branch). *)
@@ -290,31 +267,11 @@ let translate (funcs, events, elements, world) =
       | None -> ignore (f builder) 
   in
 
-  (* Store all elements struct pointers in main map *)
-  (* let store_elements m elem_type elem_n builder =
-    let store_element m element =
-      (* if elem_type = element.A.ename then *)
-       let elem_name = (elem_n ^ "_" ^ element.A.ename ^ "_element") in
-       let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in 
-        
-       let elem_size_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_size_ptr") builder in
-       let size_expr = get_var_expr "size" element.A.properties in 
-       ignore (L.build_store (expr builder size_expr) elem_size_ptr builder);
-  
-       let color_expr = get_var_expr "color" element.A.properties in
-       let color_str = string_of_expr color_expr in
-       let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
-       let color_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_color_ptr") builder in
-       ignore (L.build_store elem_color_str_ptr color_ptr builder);
-       StringMap.add elem_name elem_ptr m
-       in
-   
-    List.fold_left store_element m elements
-  in *)
+ 
   
   (* Build the code for the given statement; return the builder for the statement's successor *)
   let rec stmt builder = function
-        A.Block sl -> List.fold_left stmt builder sl
+        A.Block sl -> List.fold_left (fun builder s -> stmt builder s) builder sl
       | A.Expr e -> ignore (expr builder e); builder
       | A.New elem -> 
         let (e_typ, e_id, e_typ_check, e_pos) = elem in
@@ -350,25 +307,11 @@ let translate (funcs, events, elements, world) =
         
   in
 
-  (* Build the code for each statement in the function *)
-  (* let builder = stmt builder (A.Block fdecl.A.body) in *)
-    (* Add a return if the last block falls off the end *)
-    (* add_terminal builder (match fdecl.A.typ with
-        A.Void -> L.build_ret_void
-      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
-  in *)
 
 
 
-  let store_props m props builder =
-    let store_prop m (t,n,e) = 
-    let e' = expr builder e in 
-    let prop = L.build_alloca (ltype_of_typ t) n builder in
-    ignore (L.build_store e' prop builder); 
-    StringMap.add n prop m in
 
-    List.fold_left store_prop m props
-  in
+
 
  
   (* CREATE WORLD *)
@@ -401,6 +344,8 @@ let translate (funcs, events, elements, world) =
   let main_func_type = L.function_type i32_t [||] in
   let main_func = L.define_function "main" main_func_type the_module in
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
+
+
   
   let world_ptr = world_start_func world main_func_builder in 
   
