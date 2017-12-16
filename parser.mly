@@ -38,7 +38,8 @@
 
 /* Entry point */
 program:
-  func_decl_list event_list element_list world EOF { (List.rev $1, List.rev $2, List.rev $3, $4) }
+  var_decl_list func_decl_list event_list element_list world EOF 
+  { (List.rev $1, List.rev $2, List.rev $3, List.rev $4, $5) }
 
 /* Primitive types */
 typ:

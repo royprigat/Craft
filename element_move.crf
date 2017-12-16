@@ -1,3 +1,5 @@
+int global = 3;
+
 def int test(int a, int b) {
   	int x = x + a;
     if (x < 0) {

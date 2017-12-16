@@ -73,7 +73,7 @@ type world = {
 }
 
 (* Program *)
-type program = func_decl list * event list * element list * world
+type program = var_decl list * func_decl list * event list * element list * world
 
 
 
@@ -117,7 +117,7 @@ let rec string_of_expr = function
 | Binop(e1, o, e2) ->
   string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
 | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-| Assign(v, e) -> v ^ " = " ^ string_of_expr e
+| Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
@@ -171,7 +171,8 @@ let string_of_world world =
   String.concat "" (List.map string_of_stmt world.init_body) ^
   "}\n"
   
-let string_of_program (funcs,events,elems,world) =
+let string_of_program (globals, funcs, events, elems, world) =
+  String.concat " " (List.map string_of_vars globals) ^
   String.concat " " (List.map string_of_fdecl funcs) ^
   String.concat " " (List.map string_of_events events) ^
   String.concat " " (List.map string_of_elems elems) ^

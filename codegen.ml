@@ -20,7 +20,7 @@ module StringMap = Map.Make(String)
 
 
 
-let translate (funcs, events, elements, world) =
+let translate (globals, funcs, events, elements, world) =
   let context = L.global_context () in
   let the_module = L.create_module context "Craft"
   and i32_t  = L.i32_type  context (*int*)
@@ -48,13 +48,12 @@ let translate (funcs, events, elements, world) =
     StringMap.add (event.A.evname ^ "_event") event m in
   let events_map = List.fold_left fill_event_map StringMap.empty events in
 
-
   let ltype_of_typ = function
       A.Int -> i32_t
     | A.Float -> flt_t
     | A.Bool -> i1_t
-    | A.Pr -> pair_t
-    | A.Cr -> color_t
+    | A.Pair -> pair_t
+    | A.Color -> color_t
   in
 
 
@@ -97,51 +96,19 @@ let translate (funcs, events, elements, world) =
     | A.Keypress(s) -> string_of_expr s
   in
 
-
-
-
-
-  (* Define each function (arguments and return type) so we can call it *)
-  let function_decls =
-    let function_decl m fdecl =
-      let name = fdecl.A.fname
-      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
-      in 
-      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
-      StringMap.add name (L.define_function name ftype the_module, fdecl) m 
-    in
-    List.fold_left function_decl StringMap.empty functions 
+  let rec get_var_decl_value = function 
+      A.ILiteral i -> L.const_int i32_t i
+    | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
+    | A.Noexpr    -> L.const_int i32_t 0
+    | _ -> L.const_int i32_t 0 (* semant shouldn't let it get here *)
   in
-  
-  (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.A.fname function_decls in
-    let builder = L.builder_at_end context (L.entry_block the_function) in
 
-    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
- 
-    (* Construct the function's "locals": formal arguments and locally
-       declared variables.  Allocate each on the stack, initialize their
-       value, if appropriate, and remember their values in the "locals" map *)
-    let local_vars =
-      let add_formal m (t, n) p = L.set_value_name n p;
-      let local = L.build_alloca (ltype_of_typ t) n builder in
-        ignore (L.build_store p local builder);
-        StringMap.add n local m 
-    in
-
-      let add_local m (t, n) =
-  let local_var = L.build_alloca (ltype_of_typ t) n builder
-  in StringMap.add n local_var m in
-
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.A.locals in
-
-    (* Return the value for a variable or formal argument *)
-    let lookup n = try StringMap.find n local_vars
-                   with Not_found -> StringMap.find n global_vars
-    in 
+  (* Declare each global variable; remember its value in a map *)
+  let global_vars =
+    let global_var m (t, n, e) =
+      let e' = get_var_decl_value e in
+      StringMap.add n (L.define_global n e' the_module) m in
+    List.fold_left global_var StringMap.empty globals in
 
  
     (* Construct code for an expression; return its value *)
@@ -253,11 +220,6 @@ let translate (funcs, events, elements, world) =
       (* print_test_func new_builder; (*test*) *)
       L.const_int i32_t 0 (*dummy return value*)
 
-
-
-
-
-m
   in
 
   (* Invoke "f builder" if the current block doesn't already have a terminal (e.g., a branch). *)
@@ -346,7 +308,7 @@ m
   let main_func_builder = L.builder_at_end context (L.entry_block main_func) in
 
 
-  
+
   let world_ptr = world_start_func world main_func_builder in 
   
   ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
@@ -354,6 +316,5 @@ m
   
   (* ignore (L.build_call start_render_func [||] "" main_func_builder);  *)
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
-
 
 the_module
