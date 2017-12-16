@@ -38,7 +38,7 @@
 
 /* Entry point */
 program:
-  event_list element_list world EOF { (List.rev $1, List.rev $2, $3) }
+  func_decl_list event_list element_list world EOF { (List.rev $1, List.rev $2, List.rev $3, $4) }
 
 /* Primitive types */
 typ:
@@ -67,12 +67,13 @@ func_decl_list:
   | func_decl_list func_decl 	{ $2 :: $1 }
 
 func_decl:
-  DEF ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
+  DEF typ ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
   {{
-    fname = $2;
-		formals = $4;
-		locals = List.rev $7;
-    body = List.rev $8;
+    typ = $2 ;
+    fname = $3;
+		formals = $5;
+		locals = List.rev $8;
+    body = List.rev $9;
   }}
 
 /* Function arguments */
@@ -148,7 +149,8 @@ stmt_list:          { [] }
 
 stmt:
 	  expr SEMI 									              { Expr $1 }
-  | element_decl                              { $1 }                              
+  | element_decl                              { $1 }
+  | RETURN SEMI                               { Return Noexpr }                             
 	| RETURN expr SEMI 							            { Return $2 }
 	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }

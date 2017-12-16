@@ -1,3 +1,7 @@
+def int random(int a,int b) {
+  return a;
+}
+
 event move_up(player p) {
     condition = key_press("UP");
     action {

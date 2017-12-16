@@ -20,7 +20,7 @@ module StringMap = Map.Make(String)
 
 
 
-let translate (events, elements, world) =
+let translate (funcs, events, elements, world) =
   let context = L.global_context () in
   let the_module = L.create_module context "Craft"
   and i32_t  = L.i32_type  context (*int*)
