@@ -37,6 +37,8 @@ let translate (events, elements, world) =
   L.struct_set_body elem_t [|str_t; pair_t; pair_t; str_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
+ (*  let s_struct_t = L.named_struct_type context "string_struct" in
+  L.struct_set_body s_struct_t [|str_t|] false; *)
 
   (* Global map of elements  *)
   let fill_elem_map m element = 
@@ -78,8 +80,11 @@ let translate (events, elements, world) =
   let c_test_func_type = L.function_type (L.void_type context) [| L.pointer_type (L.function_type (L.void_type context) [||]) |] in
   let c_test_func = L.declare_function "testfn" c_test_func_type the_module in
 
-  (* let is_key_pressed_func_type = L.function_type i1_t [|str_t|] (*in correct return type? Bool or int?*)
-  let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func the_module in *)
+  let c_print_func_type = L.function_type (L.void_type context) [||] in
+  let c_print_func = L.declare_function "test_print" c_print_func_type the_module in
+
+  let is_key_pressed_func_type = L.function_type i32_t [|str_t|] in (* correct return type? Bool??? *)
+  let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func_type the_module in
 
   (* Helper functions *)
   let get_var_expr var_name var_list = 
@@ -92,6 +97,7 @@ let translate (events, elements, world) =
   let rec string_of_expr = function
     | A.SLiteral(s) -> s
     | A.Cr(c) -> string_of_expr c
+    | A.Keypress(s) -> string_of_expr s
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -148,11 +154,11 @@ let translate (events, elements, world) =
   (* let lookup n = try StringMap.find n local_vars
                    with Not_found -> StringMap.find n global_vars
   in *)
-
+(* 
   let print_test_func builder = 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
-    ignore (L.build_call printf_func [|int_format_str; (L.const_string context "test")|] "" builder);
-  in
+    ignore (L.build_call printf_func [|int_format_str; (L.const_int i32_t 23)|] "" builder);
+  in *)
 
 
     (* Construct code for an expression; return its value *)
@@ -162,6 +168,7 @@ let translate (events, elements, world) =
     | A.SLiteral s -> L.const_string context s
     | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
     | A.Noexpr -> L.const_int i32_t 0
+    | A.Keypress s -> (expr builder s)
     (* | A.Id s -> L.build_load (lookup s) s builder *)
 
     | A.Binop (e1, op, e2) ->
@@ -224,19 +231,39 @@ let translate (events, elements, world) =
 
     | A.ECall ("add_event", event_name, args) -> 
       let event = StringMap.find (event_name ^ "_event") events_map in
-      (* let condition = (expr builder event.A.condition) in *)
-      (* assume we have keypress-up for now *)
-      let test_event_func_type = L.function_type (L.void_type context) [||] in
-      let test_event_func = L.declare_function "test_event_func" test_event_func_type the_module in
-      (* how do we now put things for this function to do if it's called if we are implementing it and not C  *)
-      let builder = L.builder_at_end context (L.entry_block test_event_func) in
+      (* let condition = (expr builder event.A.condition) in (*condition is now "UP"*) *)
+      (* let condition = "UP" in  *)
 
-      ignore (L.build_call c_test_func [|test_event_func|] "" builder);
-      ignore (L.build_ret_void builder); 
-      print_test_func builder; (*test*)
+      (* assume we have keypress-up for now *)
+      let event_func_type = L.function_type (L.void_type context) [||] in
+      let event_func = L.define_function "test_event_func" event_func_type the_module in
+      let new_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
+      (* let condition = string_of_expr event.A.condition in (*condition is now "UP"*) *)
+      let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
+      (* let str_ptr = L.build_alloca str_t "test_str_ptr" new_builder in 
+       *)
+
+     (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
+      let str_ptr = L.build_global_stringptr condition ("test_str_ptr") new_builder in
+      
+     
+      ignore (L.build_call c_print_func [||] "" new_builder); (*stored in new basic block*)
+      
+      (* let event_condition_ptr = L.build_global_stringptr "test_string_haha" (event_name ^ "_event_str_ptr") new_builder in (*for testing*) *)
+      (* ignore (L.build_store event_condition_ptr string_ptr new_builder); *)
+     (*  let s_struct_ptr = L.build_struct_gep  *)
+      (* ignore (L.build_call is_key_pressed_func [|int_ptr|] "" new_builder); (*stored in new basic block*) *)
+      (* ignore (L.build_call is_key_pressed_func [|(L.const_int i32_t 23)|] "" new_builder); (*stored in new basic block*) *)
+      ignore (L.build_call is_key_pressed_func [|str_ptr|] "" new_builder); (*stored in new basic block*)
+
+
+
+      ignore (L.build_call c_test_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
+  
+      ignore (L.build_ret_void new_builder); (*need it...not sure why*)
+      (* print_test_func new_builder; (*test*) *)
       L.const_int i32_t 0 (*dummy return value*)
 
-      
 
 
 

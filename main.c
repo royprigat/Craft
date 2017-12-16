@@ -50,6 +50,7 @@ void startRender(){
 }
 int isPressed(char *key){
     int keyId;
+    printf("%s\n",key );
 
     if (strcmp(key, "UP") == 0){
         keyId = 82;
