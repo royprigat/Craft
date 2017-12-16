@@ -38,7 +38,8 @@
 
 /* Entry point */
 program:
-  event_list element_list world EOF { (List.rev $1, List.rev $2, $3) }
+  var_decl_list func_decl_list event_list element_list world EOF 
+  { (List.rev $1, List.rev $2, List.rev $3, List.rev $4, $5) }
 
 /* Primitive types */
 typ:
@@ -67,12 +68,13 @@ func_decl_list:
   | func_decl_list func_decl 	{ $2 :: $1 }
 
 func_decl:
-  DEF ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
+  DEF typ ID LPAREN formals_list_opt RPAREN LBRACE var_decl_list stmt_list RBRACE
   {{
-    fname = $2;
-		formals = $4;
-		locals = List.rev $7;
-    body = List.rev $8;
+    typ = $2 ;
+    fname = $3;
+		formals = $5;
+		locals = List.rev $8;
+    body = List.rev $9;
   }}
 
 /* Function arguments */
@@ -148,7 +150,7 @@ stmt_list:          { [] }
 
 stmt:
 	  expr SEMI 									              { Expr $1 }
-  | element_decl                              { $1 }                              
+  | element_decl                              { $1 }                          
 	| RETURN expr SEMI 							            { Return $2 }
 	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
@@ -172,6 +174,8 @@ expr:
   | expr OR expr 					                        { Binop($1, Or, $3) }
   | NOT expr  					                          { Unop(Not, $2) }
   | MINUS expr %prec NEG 		                      { Unop(Neg, $2) }
+  | expr ASSIGN expr                              { Assign($1, $3) }
+  | ID PERIOD POS PERIOD expr                     { PosAccess($1, $5) }
   | ID LPAREN actuals_opt RPAREN                  { Call($1, $3) }
   | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
   | LPAREN expr RPAREN 			                      { $2 }
@@ -184,6 +188,6 @@ literals:
   | STRING_LITERAL                { SLiteral($1) }
 	| TRUE							            { BLiteral(true) }
 	| FALSE							            { BLiteral(false) }
-	| ID  			                    { Id($1) }
+  | ID  			                    { Id($1) }
   | COLOR                         { Id("color") }
   | SIZE                          { Id("size") }

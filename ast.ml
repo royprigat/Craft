@@ -19,6 +19,7 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | Access of string * string
+  | PosAccess of string * expr
   | Keypress of expr
   | Call of string * expr list
   | ECall of string * string * expr list
@@ -43,6 +44,7 @@ type event_formal = string * string
 
 (* Function declaration *)
 type func_decl = {
+  typ : typ;
 	fname : string;
 	formals : bind list;
 	locals : var_decl list;
@@ -71,7 +73,7 @@ type world = {
 }
 
 (* Program *)
-type program = event list * element list * world
+type program = var_decl list * func_decl list * event list * element list * world
 
 
 
@@ -119,6 +121,7 @@ let rec string_of_expr = function
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
+| PosAccess(s,e) -> s ^ ".pos." ^ string_of_expr e
 | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 
@@ -141,8 +144,9 @@ let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 let string_of_event_formals (id1, id2) = id1 ^ " " ^ id2
 
 let string_of_fdecl fdecl =
-  "\ndef " ^ " " ^ fdecl.fname ^ "(" ^ String.concat ", "
-  (List.map string_of_args fdecl.formals) ^ ")\n{\n" ^
+  "\ndef " ^ string_of_typ fdecl.typ ^ " " ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
+  ") {\n" ^
   String.concat "" (List.map string_of_vars fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
@@ -150,7 +154,7 @@ let string_of_fdecl fdecl =
 let string_of_events event =
   "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
   (List.map string_of_event_formals event.formals) ^ ") " ^
-  "{\n " ^ "condition = " ^ "key_press(" ^ (string_of_expr event.condition) ^ ");\n" ^
+  "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"
 
@@ -167,7 +171,9 @@ let string_of_world world =
   String.concat "" (List.map string_of_stmt world.init_body) ^
   "}\n"
   
-let string_of_program (events,elems,world) =
+let string_of_program (globals, funcs, events, elems, world) =
+  String.concat " " (List.map string_of_vars globals) ^
+  String.concat " " (List.map string_of_fdecl funcs) ^
   String.concat " " (List.map string_of_events events) ^
   String.concat " " (List.map string_of_elems elems) ^
   string_of_world world
