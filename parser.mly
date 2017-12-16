@@ -149,8 +149,7 @@ stmt_list:          { [] }
 
 stmt:
 	  expr SEMI 									              { Expr $1 }
-  | element_decl                              { $1 }
-  | RETURN SEMI                               { Return Noexpr }                             
+  | element_decl                              { $1 }                          
 	| RETURN expr SEMI 							            { Return $2 }
 	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
@@ -186,6 +185,6 @@ literals:
   | STRING_LITERAL                { SLiteral($1) }
 	| TRUE							            { BLiteral(true) }
 	| FALSE							            { BLiteral(false) }
-	| ID  			                    { Id($1) }
+  | ID  			                    { Id($1) }
   | COLOR                         { Id("color") }
   | SIZE                          { Id("size") }

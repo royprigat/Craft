@@ -142,8 +142,9 @@ let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 let string_of_event_formals (id1, id2) = id1 ^ " " ^ id2
 
 let string_of_fdecl fdecl =
-  "\ndef " ^ " " ^ fdecl.fname ^ "(" ^ String.concat ", "
-  (List.map string_of_args fdecl.formals) ^ ")\n{\n" ^
+  "\ndef " ^ string_of_typ fdecl.typ ^ " " ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
+  ") {\n" ^
   String.concat "" (List.map string_of_vars fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
@@ -169,6 +170,7 @@ let string_of_world world =
   "}\n"
   
 let string_of_program (funcs,events,elems,world) =
+  String.concat " " (List.map string_of_fdecl funcs) ^
   String.concat " " (List.map string_of_events events) ^
   String.concat " " (List.map string_of_elems elems) ^
   string_of_world world
