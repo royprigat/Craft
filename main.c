@@ -69,7 +69,7 @@ int isPressed(char *key){
     if(keystate == NULL){
         return 0;
     }
-    printf("Returning value of keypress:%S==%d", key, keystate[keyId]);
+    printf("Returning value of keypress:%s==%d", key, keystate[keyId]);
     return keystate[keyId];
 }
 
