@@ -102,7 +102,7 @@ void refresh_world(){
     SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
 }
 
-struct element* delete_element(char *name){
+ delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
@@ -119,6 +119,7 @@ struct element* delete_element(char *name){
     if(e !=NULL){
         element_list = g_list_remove(element_list, e);
         printf("After%d", g_list_length(element_list));
+        printf("%s", e->el_color);
         refresh = 1;
         return e;
         // free(e->el_color);
@@ -265,9 +266,10 @@ int world( )
             SDL_UpdateWindowSurface( gWindow );
 
             keystate = SDL_GetKeyboardState(NULL);
-            
-            event_fn();
 
+            if(event_fn != NULL){
+                event_fn();
+            }
 
             if(refresh){
                 refresh_world();
