@@ -11,3 +11,6 @@ exception UndeclaredId of string
 exception IllegalBinOp of string * string * string * string
 exception IllegalUnOp of string * string * string
 exception IllegalPairType of string
+exception PassedReturn of string
+exception IncorrectType of string * string * string
+exception UnrecognizedFunction of string

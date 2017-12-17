@@ -18,7 +18,7 @@ SDL_Surface *gScreenSurface = NULL;
 
 struct world *w;
 
-bool restart = 0;
+int refresh = 0;
 // SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
@@ -38,10 +38,11 @@ int doElementsCollide(struct element *e1, struct element *e2){
     return 0;
 
 }
+void (*event_fn)();
 
-void testfn(void* event_fn()){
+void testfn(void* a()){
     printf("Running test fn");
-    event_fn();
+    event_fn = a;
 }
 
 void test_print(){
@@ -69,6 +70,7 @@ int isPressed(char *key){
     if(keystate == NULL){
         return 0;
     }
+    // printf("Returning value of keypress:%s==%d", key, keystate[keyId]);
     return keystate[keyId];
 }
 
@@ -96,8 +98,11 @@ void add_element(struct element *e){
 //     free(e->el_color);
 //     free(e);
 // }
+void refresh_world(){
+    SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
+}
 
-void delete_element(char *name){
+struct element* delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
@@ -113,10 +118,15 @@ void delete_element(char *name){
         }
     if(e !=NULL){
         element_list = g_list_remove(element_list, e);
+        printf("After%d", g_list_length(element_list));
+        printf("%s", e->el_color);
+        refresh = 1;
+        return e;
         // free(e->el_color);
         // free(e);
     }
-    printf("After%d", g_list_length(element_list));
+    return NULL;
+    
 }
 
 bool init()
@@ -216,14 +226,7 @@ int world( )
         // struct element ele1 = {20, 20, 70, 70, "bbbbbb", 1, 1};
         // element_list = g_slist_append(element_list, &ele);
         // element_list = g_slist_append(element_list, &ele1);
-        GSList* iterator = NULL;
-        // render_element(&ele);
-        for (iterator = element_list; iterator; iterator = iterator->next)
-        {
-            render_element((struct element*)iterator->data);
-        }
-        
-        SDL_UpdateWindowSurface( gWindow );
+       
         //Event handler
         SDL_Event e;
 
@@ -253,7 +256,25 @@ int world( )
                 }
             }
 
+            GSList* iterator = NULL;
+            // render_element(&ele);
+            for (iterator = element_list; iterator; iterator = iterator->next)
+            {
+                render_element((struct element*)iterator->data);
+            }
+        
+            SDL_UpdateWindowSurface( gWindow );
+
             keystate = SDL_GetKeyboardState(NULL);
+
+            if(event_fn != NULL){
+                event_fn();
+            }
+
+            if(refresh){
+                refresh_world();
+                refresh = 0;
+            }
             SDL_Delay(5);
 
             // printf("%d ", SDLK_LEFT);
