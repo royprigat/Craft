@@ -101,12 +101,12 @@ void delete_element(char *name){
         for (iterator = element_list; iterator; iterator = iterator->next)
         {
             e = (struct element*)iterator->data;
-            if(strcmp(e.name, name)!=0){
+            if(strcmp(e->name, name)!=0){
                 e = NULL;
             }
         }
     if(e !=NULL){
-        element_list = g_list_remove(element_list. e);
+        element_list = g_list_remove(element_list, e);
         free(e->el_color);
         free(e);
     }
