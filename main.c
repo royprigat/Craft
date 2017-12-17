@@ -26,9 +26,10 @@ struct world *w;
 
 int doElementsCollide(struct element *e1, struct element *e2){
 
-    if(e1->position.left > e2->position.left + e2->position.left || 
-       e1->position.left + e1->position.left > e2->position.left ||
-       e1->position.right > e2->position.right + e2->position.right){
+    if(e1->position.left > e2->position.left + e2->size.left || 
+       e1->position.left + e1->size.left > e2->position.left ||
+       e1->position.right > e2->position.right + e2->size.right ||
+       e1->position.right + e1->size.right < e2->position.right){
         return 1;
     }
 
@@ -95,6 +96,7 @@ void add_element(struct element *e){
 // }
 
 void delete_element(char *name){
+    printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
         // render_element(&ele);
@@ -110,6 +112,7 @@ void delete_element(char *name){
         free(e->el_color);
         free(e);
     }
+    printf("After%d", g_list_length(element_list));
 }
 
 bool init()
