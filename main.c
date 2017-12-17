@@ -17,6 +17,8 @@ SDL_Window* gWindow = NULL;
 SDL_Surface *gScreenSurface = NULL;
 
 struct world *w;
+
+bool restart = 0;
 // SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
@@ -111,8 +113,8 @@ void delete_element(char *name){
         }
     if(e !=NULL){
         element_list = g_list_remove(element_list, e);
-        free(e->el_color);
-        free(e);
+        // free(e->el_color);
+        // free(e);
     }
     printf("After%d", g_list_length(element_list));
 }
