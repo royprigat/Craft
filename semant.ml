@@ -71,9 +71,18 @@ let check (globals, funcs, events, elements, world) =
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
       (List.map varName func.locals);
 
-  (* Type of each variable (global, formal, or local *)
-  let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m)
-  	StringMap.empty (globals @ func.formals @ func.locals )
+  (* Type of each variable (global or formal *)
+  let sym = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+  	StringMap.empty globals
+  in
+
+  let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
+    sym func.formals
+  in
+
+  (* Type of each variable locals *)
+  let symbols = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+  	symbol func.locals
   in
 
   (* return the type of an ID (check given symbols map) *)
@@ -135,7 +144,6 @@ let check (globals, funcs, events, elements, world) =
       ) *)
     in
 
-    in
     (* Verify a statement or throw an exception *)
     let rec stmt m arg = function
     	Block sl -> let rec check_block = function
@@ -146,13 +154,17 @@ let check (globals, funcs, events, elements, world) =
           | [] -> ()
             in check_block sl
         | Expr e -> ignore (expr m arg e)
-        (*)| Return e -> let t = expr m arg e in if t = funcs.typ then () else
+        (*| Return e -> let t = expr m arg e in if t = funcs.typ then () else
              raise (Failure ("return gives " ^ string_of_typ t ^ " expected " ^
                              string_of_typ func.typ ^ " in " ^ string_of_expr e))
          | If(p, b1, b2) -> check_bool_expr p m arg; stmt m arg b1; stmt m arg b2
         | While(p, s) -> check_bool_expr m arg p; stmt m arg s
         | Return e -> ()*)
         in
+
+      stmt (Block func.body)
+
+      in
 
 
 
@@ -173,7 +185,7 @@ let check (globals, funcs, events, elements, world) =
     let myMem = StringMap.find s m in
     if myMem != t then raise (E.IncorrectArgumentType("expected: " ^ string_of_typ t,
                               "found: " ^ string_of_typ myMem))
-
+  in
 
 
   (*  try
@@ -190,7 +202,6 @@ let var m (t, n, e) = StringMap.add n t m in
 
 let check_elements el =
   (* check required properties *)
-  print_string("check");
    let elMems = memMap el.e_properties in
         exist "color" Color elMems;
         exist "size" Pair elMems;
@@ -222,7 +233,7 @@ in*)
     let wMems = memMap w.w_properties in
           exist "color" Color wMems;
           exist "size" Pair wMems;
-    in
+
     (* let mems = memTypes world.properties in *)
 
         (* build a map of variables within scope *)
@@ -248,4 +259,5 @@ in*)
         stmt symbols "" (Block world.init_body);
       in
 *)
+    in
     check_world world;
