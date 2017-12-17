@@ -82,6 +82,9 @@ let translate (globals, funcs, events, elements, world) =
   let is_key_pressed_func_type = L.function_type i32_t [|str_t|] in (* correct return type? Bool??? *)
   let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func_type the_module in
 
+  let delete_elem_func_type = L.function_type (L.void_type context) [|str_t|] in
+  let delete_elem_func = L.declare_function "delete_element" delete_elem_func_type the_module in
+
   (* Helper functions *)
   let get_var_expr var_name var_list = 
     let func = fun (t,s,e) -> s = var_name in
@@ -197,23 +200,62 @@ let translate (globals, funcs, events, elements, world) =
        *)
 
      (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
-      let str_ptr = L.build_global_stringptr condition ("test_str_ptr") new_builder in
+      let cond_str_ptr = L.build_global_stringptr condition ("test_str_ptr") new_builder in
+      let elem_name_str_ptr = L.build_global_stringptr "roy" ("roy_str_ptr") new_builder in
+      let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" new_builder in (*stored in new basic block*)
+ 
+      let is_pressed_bb = L.append_block context ("pressed_"^condition) event_func in
+      let not_pressed_bb = L.append_block context ("not_pressed_"^condition) event_func in
+
+      let is_pressed_builder = L.builder_at_end context is_pressed_bb in
+      (* let elem_ptr = L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder in *)
+      ignore(L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder);
+
+
+      (* let new_pos = L.const_named_struct pair_t [|L.const_int i32_t 300; L.const_int i32_t 300|] in *)
+
+
+
+      (* Element position *)
+      (* let elem_pos_ptr = L.build_struct_gep elem_ptr 2 ("roy" ^ "_pos_ptr") is_pressed_builder in *)
+      (* ignore (L.build_store new_pos elem_pos_ptr is_pressed_builder);  *)
+
+
+      (* Call add_element function *)
+     (*  ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ignore (L.build_br not_pressed_bb is_pressed_builder);
+
+
+     let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) new_builder in
+      ignore(L.build_cond_br compare_instruction is_pressed_bb not_pressed_bb new_builder);
+ 
       
      
       ignore (L.build_call c_print_func [||] "" new_builder); (*stored in new basic block*)
-      
-      (* let event_condition_ptr = L.build_global_stringptr "test_string_haha" (event_name ^ "_event_str_ptr") new_builder in (*for testing*) *)
-      (* ignore (L.build_store event_condition_ptr string_ptr new_builder); *)
-     (*  let s_struct_ptr = L.build_struct_gep  *)
-      (* ignore (L.build_call is_key_pressed_func [|int_ptr|] "" new_builder); (*stored in new basic block*) *)
-      (* ignore (L.build_call is_key_pressed_func [|(L.const_int i32_t 23)|] "" new_builder); (*stored in new basic block*) *)
-      ignore (L.build_call is_key_pressed_func [|str_ptr|] "" new_builder); (*stored in new basic block*)
+    
+      (* ignore(L.build_call is_key_pressed_func [|str_ptr|] "" new_builder); *)
 
+
+      let some_builder = L.builder_at_end context not_pressed_bb in
 
 
       ignore (L.build_call c_test_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
   
       ignore (L.build_ret_void new_builder); (*need it...not sure why*)
+      ignore (L.build_ret_void some_builder); (*???*)
       (* print_test_func new_builder; (*test*) *)
       L.const_int i32_t 0 (*dummy return value*)
 
