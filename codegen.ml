@@ -279,17 +279,47 @@ let translate (globals, funcs, events, elements, world) =
       | A.Expr e -> ignore (expr builder map e); builder
       | A.New elem -> 
         let (e_typ, e_id, e_typ_check, e_pos) = elem in
-        let element = StringMap.find (e_typ ^ "_element") elements_helper_map in
+        
+        (*run the store_elem_func and get the pointer to generic element struct*)
+        let store_elem_func = StringMap.find ("store_" ^ e_typ ^ "_element") map in
+        let generic_elem_ptr = L.build_call store_elem_func [||] "" builder in
 
-    (*    
-        (* Element position *)
-        let elem_pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") builder in
-        ignore (L.build_store (expr builder map e_pos) elem_pos_ptr builder); 
-   *)
+        (*get size and color values from the generic struct*)
+        let generic_size_ptr = L.build_struct_gep generic_elem_ptr 1 ("elem_size_ptr") builder in  
+        let generic_size = L.build_load generic_size_ptr "elem_size" builder in
+
+        let generic_color_ptr = L.build_struct_gep generic_elem_ptr 3 ("elem_color_ptr") builder in
+        let generic_color = L.build_load generic_color_ptr "elem_color" builder in
+
+
+        (*store a new struct for new element added*)
+        let id_elem_name = (e_id ^ "_" ^ e_typ ^ "_element") in
+        let elem_ptr = L.build_malloc elem_t (id_elem_name ^ "_ptr") builder in
+
+
+
+
+        (*Store name*)
+        let elem_name_str_ptr = L.build_global_stringptr e_id (id_elem_name ^ "_name_str_ptr") builder in
+        let name_ptr = L.build_struct_gep elem_ptr 0 (id_elem_name ^ "_name_ptr") builder in
+        ignore (L.build_store elem_name_str_ptr name_ptr builder);
+
+        (* Element size *)
+        let size_ptr = L.build_struct_gep elem_ptr 1 (id_elem_name ^ "_size_ptr") builder in
+        ignore (L.build_store generic_size size_ptr builder);
+
+         (* Element color *)
+        let color_ptr = L.build_struct_gep elem_ptr 3 (id_elem_name ^ "_color_ptr") builder in
+        ignore (L.build_store generic_color color_ptr builder);
+
+        (* add the new Element position *)
+        let pos_ptr = L.build_struct_gep elem_ptr 2 (id_elem_name ^ "_pos_ptr") builder in
+        ignore (L.build_store (expr builder map e_pos) pos_ptr builder); 
+  
         
 
         (* Call add_element function *)
-       (*  ignore (L.build_call add_e [|elem_ptr|] "" builder); builder *) builder
+        ignore (L.build_call add_e [|elem_ptr|] "" builder); builder
         
   in
 
@@ -355,7 +385,7 @@ let elements_map =
     let elem_name = (element.A.ename ^ "_element") in
 
     (*a function that stores the generic element for later reference*)
-    let store_elem_func_type = L.function_type (L.void_type context) [||] in
+    let store_elem_func_type = L.function_type (L.pointer_type elem_t) [||] in
     let store_elem_func = L.define_function ("store_" ^ elem_name) store_elem_func_type the_module in
     let elem_builder = L.builder_at_end context (L.entry_block store_elem_func) in
 
@@ -433,7 +463,7 @@ in
 
 
 
-  let world_ptr = world_start_func world functions_map main_func_builder  in 
+  let world_ptr = world_start_func world elements_map main_func_builder  in 
 
 
   
