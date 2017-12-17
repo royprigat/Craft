@@ -18,7 +18,7 @@ SDL_Surface *gScreenSurface = NULL;
 
 struct world *w;
 
-bool restart = 0;
+int restart = 0;
 // SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
@@ -69,6 +69,7 @@ int isPressed(char *key){
     if(keystate == NULL){
         return 0;
     }
+    printf("Returning value of keypress:%S==%d", key, keystate[keyId]);
     return keystate[keyId];
 }
 
