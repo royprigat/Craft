@@ -18,7 +18,7 @@ SDL_Surface *gScreenSurface = NULL;
 
 struct world *w;
 
-int restart = 0;
+int refresh = 0;
 // SDL_Surface *player = NULL;
 
 //The image we will load and show on the screen
@@ -98,6 +98,9 @@ void add_element(struct element *e){
 //     free(e->el_color);
 //     free(e);
 // }
+void refresh_world(){
+    SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
+}
 
 struct element* delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
@@ -116,6 +119,7 @@ struct element* delete_element(char *name){
     if(e !=NULL){
         element_list = g_list_remove(element_list, e);
         printf("After%d", g_list_length(element_list));
+        refresh = 1;
         return e;
         // free(e->el_color);
         // free(e);
@@ -265,8 +269,9 @@ int world( )
             event_fn();
 
 
-            if(restart){
-                
+            if(refresh){
+                refresh_world();
+                refresh = 0;
             }
             SDL_Delay(5);
 
