@@ -22,7 +22,6 @@ type expr =
   | PosAccess of string * expr
   | Keypress of expr
   | Call of string * expr list
-  | ECall of string * string * expr list
   | Noexpr
 
 type element_decl = string * string * string * expr
@@ -35,6 +34,7 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
   | New of element_decl
+  | ECall of string * string * expr list
 
 (* Variable declaration  *)
 type var_decl =  typ * string * expr
@@ -120,7 +120,6 @@ let rec string_of_expr = function
 | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-| ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
 | PosAccess(s,e) -> s ^ ".pos." ^ string_of_expr e
 | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
@@ -135,6 +134,7 @@ let rec string_of_stmt = function
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | New(a,b,c,d) -> "element " ^ a ^ " " ^ b ^ " = new " ^ c  ^ string_of_expr d ^ ";\n"
+  | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
  
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"

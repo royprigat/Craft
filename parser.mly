@@ -149,13 +149,14 @@ stmt_list:          { [] }
   | stmt_list stmt	{ $2 :: $1 }
 
 stmt:
-	  expr SEMI 									              { Expr $1 }
-  | element_decl                              { $1 }                          
-	| RETURN expr SEMI 							            { Return $2 }
-	| LBRACE stmt_list RBRACE 					        { Block(List.rev $2) }
-	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	{ If($3, $5, Block([])) }
-	| IF LPAREN expr RPAREN stmt ELSE stmt 		  { If($3, $5, $7) }
-	| WHILE LPAREN expr RPAREN stmt 			      { While($3, $5)}
+	  expr SEMI 									                  { Expr $1 }
+  | element_decl                                  { $1 }                          
+	| RETURN expr SEMI 							                { Return $2 }
+	| LBRACE stmt_list RBRACE 					            { Block(List.rev $2) }
+	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	    { If($3, $5, Block([])) }
+	| IF LPAREN expr RPAREN stmt ELSE stmt 		      { If($3, $5, $7) }
+	| WHILE LPAREN expr RPAREN stmt 			          { While($3, $5)}
+  | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
 
 /* Expressions */
 expr:
@@ -177,7 +178,6 @@ expr:
   | expr ASSIGN expr                              { Assign($1, $3) }
   | ID PERIOD POS PERIOD expr                     { PosAccess($1, $5) }
   | ID LPAREN actuals_opt RPAREN                  { Call($1, $3) }
-  | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
   | LPAREN expr RPAREN 			                      { $2 }
   | LPAREN expr COMMA expr RPAREN                 { Pr($2,$4) }
   | KEY_PRS LPAREN expr RPAREN                    { Keypress($3) }
