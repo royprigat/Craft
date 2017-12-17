@@ -54,20 +54,26 @@ let check (globals, funcs, events, elements, world) =
     let function_decl s = try StringMap.find s function_decls
            with Not_found -> raise (E.UnrecognizedFunction(s)) in
 
+   (* Type of each variable (global or formal *)
+    let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+      StringMap.empty globals
+    in
+
+
     (* return the type of an ID (check given symbols map) *)
-    let type_of_identifier s m =
-        try StringMap.find s m
+    let type_of_identifier s =
+        try StringMap.find s symbol
         with Not_found -> raise (E.UndeclaredId(s))
     in
 
 
    (* Return the type of an expression or throw an exception *)
-     let rec expr m = function
+     let rec expr = function
       ILiteral _ -> Int
       | BLiteral _ -> Bool
       | FLiteral _ -> Float
-      | Id s -> type_of_identifier s m
-      | Binop(e1, op, e2) as e -> let t1 = expr m e1 and t2 = expr m e2 in
+      | Id s -> type_of_identifier s
+      | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
        (match op with
          Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
          |  Add | Sub | Mult | Div when t1 = Int && t2 = Float -> Float
@@ -82,7 +88,7 @@ let check (globals, funcs, events, elements, world) =
          | _ -> raise (E.IllegalBinOp(string_of_typ t1 ^ " ", string_of_op op ^ " ",
          string_of_typ t2 ^ " in ", string_of_expr e))
        )
-     | Unop(op, e) as ex -> let t = expr m e in
+     | Unop(op, e) as ex -> let t = expr e in
       (match op with
          Neg when t = Int -> Int
           | Not when t = Bool -> Bool
@@ -90,19 +96,24 @@ let check (globals, funcs, events, elements, world) =
            string_of_expr ex))
       )
      | Noexpr-> Void
+     | Assign(var, e) as ex -> let lt = expr var
+                                and rt = expr e in
+        check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
+				     " = " ^ string_of_typ rt ^ " in " ^
+				     string_of_expr ex))
 
      in
 
      (* Verify a statement or throw an exception *)
-     let rec stmt m = function
+     let rec stmt = function
        Block sl -> let rec check_block = function
-         [Return _ as s] -> stmt m s
+         [Return _ as s] -> stmt s
            | Return _ :: _ -> raise (E.PassedReturn("nothing may follow a return statement"))
            | Block sl :: ss -> check_block (sl @ ss)
-           | s :: ss -> stmt m s ; check_block ss
+           | s :: ss -> stmt s ; check_block ss
            | [] -> ()
              in check_block sl
-         | Expr e -> ignore (expr m e)
+         | Expr e -> ignore (expr e)
 
      in
 
@@ -114,21 +125,16 @@ let check (globals, funcs, events, elements, world) =
       report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
         (List.map varName func.locals);
 
-    (* Type of each variable (global or formal *)
-    let sym = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
-      StringMap.empty globals
-    in
-
     let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
-      sym func.formals
+      symbol func.formals
     in
 
     (* Type of each variable locals *)
-    let symbols = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+    let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
       symbol func.locals
     in
 
-  stmt symbols (Block func.body);
+  stmt (Block func.body);
 
   in
   List.iter check_function funcs;
@@ -150,15 +156,15 @@ let check (globals, funcs, events, elements, world) =
 
 
   (* add variable to a map *)
-let var m (t, n, e) = StringMap.add n t m in
+let addVar m (t, n, e) = StringMap.add n t m in
 
 (* check if types in var_decl match *)
-let checkVars m = function
+(* let checkVars m = function
 (t,n,e) -> let ty = expr m e in
 if t = ty
   then ()
    else raise (E.IncorrectType("expected type: " ^ string_of_typ t, ", not " ^ string_of_expr e, " of type: " ^ string_of_typ ty))
-in
+in *)
 
 (* CHECK ELEMENTS *)
 
@@ -186,9 +192,9 @@ List.iter check_elements elements;
           exist "size" Pair wMems;
 
     (* build a map of variables within scope *)
-    let propSymbols = List.fold_left var StringMap.empty w.w_properties in
+    let symbol = List.fold_left addVar symbol w.w_properties in
 
-    let bothSymbols = List.fold_left var propSymbols w.init_locals in
+    let symbol = List.fold_left addVar symbol w.init_locals in
 
     (* check for duplicate world properties *)
     report_duplicate (fun n -> "Duplicate variable <" ^ n ^ "> in your world properties")
@@ -198,10 +204,10 @@ List.iter check_elements elements;
       (List.map varName w.init_locals);
 
       (* check members *)
-    List.iter (checkVars bothSymbols ) w.w_properties;
+    (* List.iter (checkVars bothSymbols ) w.w_properties; *)
 
     (* check world body *)
-    stmt bothSymbols (Block w.init_body);
+    stmt (Block w.init_body);
 
     in
     check_world world;

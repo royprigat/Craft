@@ -97,6 +97,7 @@ let translate (globals, funcs, events, elements, world) =
     | A.SLiteral(s) -> s
     | A.Cr(c) -> string_of_expr c
     | A.Keypress(s) -> string_of_expr s
+    | A.Id (s) -> s
   in
 
   let rec get_var_decl_value = function 
@@ -178,7 +179,7 @@ let translate (globals, funcs, events, elements, world) =
       let y_ptr = L.build_struct_gep pr_ptr 1 "y" builder in
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
-
+(* 
    | A.Assign (e1, e2) ->
       let new_val = expr 
 
@@ -186,12 +187,16 @@ let translate (globals, funcs, events, elements, world) =
         |A.PosAccess (n,e) ->
           let x_or_y = expr builder map e in 
 
-      )
+      ) *)
 
     | A.ECall ("add_event", event_name, ids) -> 
       let event = StringMap.find (event_name ^ "_event") events_helper_map in
       (* let condition = (expr builder event.A.condition) in (*condition is now "UP"*) *)
       (* let condition = "UP" in  *)
+(*       let first_id_expr = List.hd in (*it's an expr*)
+      let first_id = string_of_expr first_id_expr in *)
+      
+
 
 
       (* assume we have keypress-up for now *)
