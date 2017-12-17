@@ -52,7 +52,7 @@ let check (globals, funcs, events, elements, world) =
                              StringMap.empty funcs in
 
     let function_decl s = try StringMap.find s function_decls
-           with Not_found -> raise (Failure ("unrecognized function " ^ s)) in
+           with Not_found -> raise (E.UnrecognizedFunction(s)) in
 
     (* return the type of an ID (check given symbols map) *)
     let type_of_identifier s m =
@@ -97,7 +97,7 @@ let check (globals, funcs, events, elements, world) =
      let rec stmt m = function
        Block sl -> let rec check_block = function
          [Return _ as s] -> stmt m s
-           | Return _ :: _ -> raise (Failure "nothing may follow a return")
+           | Return _ :: _ -> raise (E.PassedReturn("nothing may follow a return statement"))
            | Block sl :: ss -> check_block (sl @ ss)
            | s :: ss -> stmt m s ; check_block ss
            | [] -> ()
@@ -157,7 +157,7 @@ let checkVars m = function
 (t,n,e) -> let ty = expr m e in
 if t = ty
   then ()
-   else raise (Failure ("expected type " ^ string_of_typ t ^ ", not " ^ string_of_expr e ^ " of type " ^ string_of_typ ty))
+   else raise (E.IncorrectType("expected type: " ^ string_of_typ t, ", not " ^ string_of_expr e, " of type: " ^ string_of_typ ty))
 in
 
 (* CHECK ELEMENTS *)
