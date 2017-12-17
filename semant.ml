@@ -18,11 +18,23 @@ let check (globals, funcs, events, elements, world) =
       in helper (List.sort compare list)
   in
 
+  (* get variable name *)
+  let varName = function (_, n, _) -> n in
+
+  (* get variable name *)
+  let bindName = function (_, n) -> n in
+
   (* Raise an exception of the given rvalue type cannot be assigned to
        the given lvalue type *)
   let check_assign lvaluet rvaluet err =
     if lvaluet == rvaluet then lvaluet else raise err
   in
+
+  (* Raise an exception if a given binding is to a void type *)
+  (* let check_not_void exceptf = function
+      (Void, n, e) -> raise (Failure (exceptf n))
+    | _ -> ()
+  in *)
 
   let string_of_typ = function
     Int -> "int"
@@ -35,16 +47,16 @@ let check (globals, funcs, events, elements, world) =
 
   (**** Checking Global Variables ****)
 
-  (* List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
+  (* List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals; *)
 
-  report_duplicate (fun n -> "duplicate global " ^ n) (List.map snd globals);
+  report_duplicate (fun n -> "duplicate global " ^ n) (List.map varName globals);
 
 (* CHECK FUNCTIONS *)
   report_duplicate (fun n -> "duplicate function " ^ n)
-    (List.map (fun fd -> fd.fname) functions);
+    (List.map (fun fd -> fd.fname) funcs);
 
-  let function_decls = List.fold_left (fun m fd -> StringMap.add funcs.fname fd m)
-                           StringMap.empty functions
+  let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
+                           StringMap.empty funcs
   in
 
   let function_decl s = try StringMap.find s function_decls
@@ -53,21 +65,20 @@ let check (globals, funcs, events, elements, world) =
 
   let check_function func =
 
-    List.iter (check_not_void (fun n -> "illegal void formal " ^ n ^
-      " in " ^ func.fname)) func.formals;
-
     report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
-      (List.map snd func.formals);
-
-    List.iter (check_not_void (fun n -> "illegal void local " ^ n ^
-      " in " ^ func.fname)) func.locals;
+      (List.map bindName func.formals);
 
     report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
-      (List.map snd func.locals); *)
+      (List.map varName func.locals);
+
+  (* Type of each variable (global, formal, or local *)
+  let symbols = List.fold_left (fun m (t, n) -> StringMap.add n t m)
+  	StringMap.empty (globals @ func.formals @ func.locals )
+  in
 
   (* return the type of an ID (check given symbols map) *)
-  let type_of_identifier s m =
-      try StringMap.find s m
+  let type_of_identifier s =
+      try StringMap.find s symbols
         with Not_found -> raise (E.UndeclaredId(s))
     in
 
@@ -76,7 +87,7 @@ let check (globals, funcs, events, elements, world) =
 	   ILiteral _ -> Int
      | BLiteral _ -> Bool
      | FLiteral _ -> Float
-     | Id s -> type_of_identifier s m
+     | Id s -> type_of_identifier s
      | Binop(e1, op, e2) as e -> let t1 = expr m arg e1 and t2 = expr m arg e2 in
 	    (match op with
         Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
@@ -99,7 +110,7 @@ let check (globals, funcs, events, elements, world) =
          | _ -> raise (E.IllegalUnOp(string_of_uop op, string_of_typ t ^ " in ",
           string_of_expr ex))
      )
-    (* | Noexpr -> () *)
+    | Noexpr -> Void
     (* | Assign(var, e) as ex -> let lt = type_of_identifier var m
                               and rt = expr m e in
         check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
@@ -124,7 +135,7 @@ let check (globals, funcs, events, elements, world) =
       ) *)
     in
 
-
+    in
     (* Verify a statement or throw an exception *)
     let rec stmt m arg = function
     	Block sl -> let rec check_block = function
@@ -162,7 +173,6 @@ let check (globals, funcs, events, elements, world) =
     let myMem = StringMap.find s m in
     if myMem != t then raise (E.IncorrectArgumentType("expected: " ^ string_of_typ t,
                               "found: " ^ string_of_typ myMem))
-  in
 
 
 
@@ -172,9 +182,6 @@ let check (globals, funcs, events, elements, world) =
       if typeT != t then raise (Failure ("Wrong type for " ^ s))
       with Not_found -> raise (Failure ("You haven't defined " ^ s))
     in*)
-
-  (* get variable name *)
-let varName = function (_, n, _) -> n in
 
   (* add variable to a map *)
 let var m (t, n, e) = StringMap.add n t m in
