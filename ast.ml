@@ -54,7 +54,7 @@ type func_decl = {
 (* Events *)
 type event = {
 	evname : string;
-  formals : event_formal list;
+  eformals : event_formal list;
   condition : expr;
   action : stmt list;
 }
@@ -153,7 +153,7 @@ let string_of_fdecl fdecl =
 
 let string_of_events event =
   "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
-  (List.map string_of_event_formals event.formals) ^ ") " ^
+  (List.map string_of_event_formals event.eformals) ^ ") " ^
   "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"
