@@ -118,7 +118,7 @@ event:
   EVENT ID LPAREN event_formals_list RPAREN LBRACE COND ASSIGN expr SEMI ACT LBRACE stmt_list RBRACE RBRACE
   {{
     evname = $2;
-    formals = $4;
+    eformals = $4;
     condition = $9;
     action = List.rev $13;
   }}
