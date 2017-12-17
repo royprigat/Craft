@@ -105,6 +105,8 @@ void delete_element(char *name){
             e = (struct element*)iterator->data;
             if(strcmp(e->name, name)!=0){
                 e = NULL;
+            }else{
+                break;
             }
         }
     if(e !=NULL){
