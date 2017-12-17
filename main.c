@@ -70,7 +70,7 @@ int isPressed(char *key){
     if(keystate == NULL){
         return 0;
     }
-    printf("Returning value of keypress:%s==%d", key, keystate[keyId]);
+    // printf("Returning value of keypress:%s==%d", key, keystate[keyId]);
     return keystate[keyId];
 }
 
@@ -99,7 +99,7 @@ void add_element(struct element *e){
 //     free(e);
 // }
 
-void delete_element(char *name){
+struct element* delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
@@ -115,10 +115,13 @@ void delete_element(char *name){
         }
     if(e !=NULL){
         element_list = g_list_remove(element_list, e);
+        printf("After%d", g_list_length(element_list));
+        return e;
         // free(e->el_color);
         // free(e);
     }
-    printf("After%d", g_list_length(element_list));
+    return NULL;
+    
 }
 
 bool init()
