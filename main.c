@@ -38,10 +38,11 @@ int doElementsCollide(struct element *e1, struct element *e2){
     return 0;
 
 }
+void (*event_fn)();
 
-void testfn(void* event_fn()){
+void testfn(void* a()){
     printf("Running test fn");
-    event_fn();
+    event_fn = a;
 }
 
 void test_print(){
@@ -217,14 +218,7 @@ int world( )
         // struct element ele1 = {20, 20, 70, 70, "bbbbbb", 1, 1};
         // element_list = g_slist_append(element_list, &ele);
         // element_list = g_slist_append(element_list, &ele1);
-        GSList* iterator = NULL;
-        // render_element(&ele);
-        for (iterator = element_list; iterator; iterator = iterator->next)
-        {
-            render_element((struct element*)iterator->data);
-        }
-        
-        SDL_UpdateWindowSurface( gWindow );
+       
         //Event handler
         SDL_Event e;
 
@@ -254,7 +248,23 @@ int world( )
                 }
             }
 
+            GSList* iterator = NULL;
+            // render_element(&ele);
+            for (iterator = element_list; iterator; iterator = iterator->next)
+            {
+                render_element((struct element*)iterator->data);
+            }
+        
+            SDL_UpdateWindowSurface( gWindow );
+
             keystate = SDL_GetKeyboardState(NULL);
+            
+            event_fn();
+
+
+            if(restart){
+                
+            }
             SDL_Delay(5);
 
             // printf("%d ", SDLK_LEFT);
