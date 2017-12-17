@@ -5,7 +5,7 @@ open Ast
 module E = Exceptions
 module StringMap = Map.Make(String)
 
-let check (funcs, events, elements, world) =
+let check (globals, funcs, events, elements, world) =
 
 (* HELPERS *)
 
@@ -32,6 +32,38 @@ let check (funcs, events, elements, world) =
     | Pair -> "pair"
     | Color -> "color"
   in
+
+  (**** Checking Global Variables ****)
+
+  (* List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
+
+  report_duplicate (fun n -> "duplicate global " ^ n) (List.map snd globals);
+
+(* CHECK FUNCTIONS *)
+  report_duplicate (fun n -> "duplicate function " ^ n)
+    (List.map (fun fd -> fd.fname) functions);
+
+  let function_decls = List.fold_left (fun m fd -> StringMap.add funcs.fname fd m)
+                           StringMap.empty functions
+  in
+
+  let function_decl s = try StringMap.find s function_decls
+         with Not_found -> raise (Failure ("unrecognized function " ^ s))
+  in
+
+  let check_function func =
+
+    List.iter (check_not_void (fun n -> "illegal void formal " ^ n ^
+      " in " ^ func.fname)) func.formals;
+
+    report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
+      (List.map snd func.formals);
+
+    List.iter (check_not_void (fun n -> "illegal void local " ^ n ^
+      " in " ^ func.fname)) func.locals;
+
+    report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
+      (List.map snd func.locals); *)
 
   (* return the type of an ID (check given symbols map) *)
   let type_of_identifier s m =
