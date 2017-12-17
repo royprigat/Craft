@@ -100,15 +100,64 @@ let translate (globals, funcs, events, elements, world) =
       A.ILiteral i -> L.const_int i32_t i
     | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
     | A.Noexpr    -> L.const_int i32_t 0
-    | _ -> L.const_int i32_t 0 (* semant shouldn't let it get here *)
+    | _ -> L.const_int i32_t 0 
   in
 
   (* Declare each global variable; remember its value in a map *)
-  let global_vars =
+  let global_vars_map =
     let global_var m (t, n, e) =
       let e' = get_var_decl_value e in
       StringMap.add n (L.define_global n e' the_module) m in
-    List.fold_left global_var StringMap.empty globals in
+    List.fold_left global_var StringMap.empty globals 
+  in
+
+
+
+  let function_decls_map = 
+    let function_decl map fdecl =
+      let name = fdecl.A.fname
+      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
+      in
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+      let func = L.define_function name ftype the_module in
+      StringMap.add name func map 
+    in
+    List.fold_left function_decl StringMap.empty funcs
+  in
+
+  let build_function_body fdecl = 
+    let the_function = StringMap.find fdecl.A.fname function_decls_map in
+    let func_builder = L.builder_at_end context (L.entry_block the_function) in
+
+    let map = 
+      let add_formal map (t,n) p = L.set_value_name n p;
+        let local = L.build_alloca (ltype_of_typ t) n func_builder in
+        ignore (L.build_store p local func_builder);
+        StringMap.add n local map 
+      in
+
+      let add_local map (t,n,e) =
+        let e' = get_var_decl_value e in 
+        let local_var = L.build_alloca (ltype_of_typ t) n func_builder in
+        StringMap.add n local_var map 
+      in
+
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+        (Array.to_list (L.params the_function)) in
+      List.fold_left add_local formals fdecl.A.locals
+    in
+    map (*build_function_body returns the filled map*)
+  in
+
+  let functions_map = List.fold_left (fun f -> build_function_body f) funcs in
+
+  (* Return the value for a variable or formal argument *)
+  let lookup n = try StringMap.find n local_vars_map
+                  with Not_found -> StringMap.find n global_vars
+  in
+
+
+
 
  
     (* Construct code for an expression; return its value *)
