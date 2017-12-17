@@ -99,7 +99,7 @@ void add_element(struct element *e){
 //     free(e);
 // }
 
-(struct element*) delete_element(char *name){
+struct element* delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
