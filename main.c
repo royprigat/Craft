@@ -102,7 +102,7 @@ void refresh_world(){
     SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
 }
 
- delete_element(char *name){
+struct element* delete_element(char *name){
     printf("Before %d", g_list_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
