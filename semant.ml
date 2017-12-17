@@ -153,12 +153,12 @@ let check (globals, funcs, events, elements, world) =
 let var m (t, n, e) = StringMap.add n t m in
 
 (* check if types in var_decl match *)
-(* let checkVars m arg = function
+let checkVars m = function
 (t,n,e) -> let ty = expr m e in
 if t = ty
   then ()
-   else raise (Failure ("expected type " ^ string_of_typ t ^ ", not " ^ string_of_expr e ^ " of type " ^ string_of_typ e_typ))
-in *)
+   else raise (Failure ("expected type " ^ string_of_typ t ^ ", not " ^ string_of_expr e ^ " of type " ^ string_of_typ ty))
+in
 
 (* CHECK ELEMENTS *)
 
@@ -190,15 +190,15 @@ List.iter check_elements elements;
 
     let bothSymbols = List.fold_left var propSymbols w.init_locals in
 
-    (* check members *)
-  (* List.iter (checkVars symbols "" ) world.w_properties; *)
-
     (* check for duplicate world properties *)
     report_duplicate (fun n -> "Duplicate variable <" ^ n ^ "> in your world properties")
       (List.map varName w.w_properties);
 
     report_duplicate (fun n -> "Duplicate local variable <" ^ n ^ "> in your world")
       (List.map varName w.init_locals);
+
+      (* check members *)
+    List.iter (checkVars bothSymbols ) w.w_properties;
 
     (* check world body *)
     stmt bothSymbols (Block w.init_body);
