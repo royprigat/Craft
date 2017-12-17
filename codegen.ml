@@ -119,7 +119,7 @@ let translate (globals, funcs, events, elements, world) =
     | A.BLiteral b -> L.const_int i1_t (if b then 1 else 0)
     | A.Noexpr -> L.const_int i32_t 0
     | A.Keypress s -> (expr builder map s)
-    (* | A.Id s -> L.build_load (lookup s) s builder *)
+    | A.Id s -> L.build_load (StringMap.find s map) s builder
 
     | A.Binop (e1, op, e2) ->
       let e1' = expr builder map e1
@@ -178,7 +178,7 @@ let translate (globals, funcs, events, elements, world) =
       let y_ptr = L.build_struct_gep pr_ptr 1 "y" builder in
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
-(* 
+
    | A.Assign (e1, e2) ->
       let new_val = expr 
 
@@ -186,12 +186,13 @@ let translate (globals, funcs, events, elements, world) =
         |A.PosAccess (n,e) ->
           let x_or_y = expr builder map e in 
 
-      ) *)
+      )
 
-    | A.ECall ("add_event", event_name, args) -> 
+    | A.ECall ("add_event", event_name, ids) -> 
       let event = StringMap.find (event_name ^ "_event") events_helper_map in
       (* let condition = (expr builder event.A.condition) in (*condition is now "UP"*) *)
       (* let condition = "UP" in  *)
+
 
       (* assume we have keypress-up for now *)
       let event_func_type = L.function_type (L.void_type context) [||] in
@@ -374,6 +375,17 @@ let functions_map =
   in
   List.fold_left build_function_body function_decls_map funcs
 in
+
+(* let events_map = 
+  let build_event_body m event = 
+    let the_event = StringMap.find (event.A.evname ^ "_event") events_helper_map in
+    let event_name = event.A.evname in
+    StringMap.add (event.A.evname ^ "_event") the_event m 
+  in
+  List.fold_left build_event_body functions_map events
+in
+ *)
+
 
 let elements_map = 
   let build_element_body m element =
