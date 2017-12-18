@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include  <sys/types.h>
 bool shouldStart = true;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
@@ -40,7 +41,7 @@ int doElementsCollide(struct element *e1, struct element *e2){
 }
 void (*event_fn)();
 
-void testfn(void* a()){
+void testfn(void (*a)()){
     printf("Running test fn");
     event_fn = a;
 }
@@ -103,13 +104,14 @@ void refresh_world(){
 }
 
 struct element* delete_element(char *name){
-    printf("Before %d", g_list_length(element_list));
+    printf("Before %d", g_slist_length(element_list));
     struct element *e = NULL;
     GSList* iterator = NULL;
         // render_element(&ele);
         for (iterator = element_list; iterator; iterator = iterator->next)
         {
             e = (struct element*)iterator->data;
+            printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
             if(strcmp(e->name, name)!=0){
                 e = NULL;
             }else{
@@ -117,8 +119,8 @@ struct element* delete_element(char *name){
             }
         }
     if(e !=NULL){
-        element_list = g_list_remove(element_list, e);
-        printf("After%d", g_list_length(element_list));
+        element_list = g_slist_remove(element_list, iterator->data);
+        printf("After%d", g_slist_length(element_list));
         printf("%s", e->el_color);
         refresh = 1;
         return e;
@@ -286,3 +288,26 @@ int world( )
 
     return 0;
 }
+
+// int main(int argc, char ** argv){
+//         struct element ele = {"one", {20, 20}, {10, 10}, "aabbcc", 1, 1};
+//         struct element ele1 = {"two", 20, 20, 70, 70, "bbbbbb", 1, 1};
+//         struct element ele2 = {"three", 20, 20, 70, 70, "333333", 1, 1};
+        
+//         struct world t = {400,400, "aaaaaa"};
+//         init_world(&t);
+//         add_element(&ele);
+//         add_element(&ele1);
+//         // world();
+//         // if(fork()==0){
+//         //     world();
+//         // }
+//         // printf("BACK to main\n");
+//         // SDL_Delay(10000);
+//         delete_element("one");
+//         add_element(&ele2);
+//         world();
+        
+
+//     return 0;
+// }
