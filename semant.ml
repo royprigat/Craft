@@ -46,9 +46,16 @@ let check (globals, funcs, events, elements, world) =
 
 let globalsList = List.map varName globals in
 let wlocalsList = List.map varName world.init_locals in
+let bigList = globalsList @ wlocalsList @ events.evname @ elements.ename 
 
-let bigList = List.append globalsList wlocalsList in
+let func_create func = 
+  insert func.fname bigList;
+  let bigList = (List.map bindName func.formals) @ (List.map bindName func.locals) @ bigList
+in
+List.iter func_create funcs;
 
+report_duplicate (fun n -> "duplicate names " ^ n) bigList;
+(* 
 let check_function func =
 
   report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
@@ -58,7 +65,7 @@ let check_function func =
       (List.map varName func.locals);
 
   insert func.fname bigList;
-
+ *)
 
 
   (* let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
@@ -72,8 +79,8 @@ let check_function func =
 
   (* stmt (Block func.body); *)
 
-  in
-  List.iter check_function funcs;
+  (* in
+  List.iter check_function funcs; *)
 
 
 
