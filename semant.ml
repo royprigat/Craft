@@ -18,20 +18,13 @@ let check (globals, funcs, events, elements, world) =
       in helper (List.sort compare list)
   in
 
-  (* get string name from list *)
-  let strName = function (n) -> n in
-
   (* get variable name *)
   let varName = function (_, n, _) -> n in
 
   (* get variable name *)
   let bindName = function (_, n) -> n in
 
-  (* get elements from function and add to list*)
-  let rec insert x = function
-     | [] -> [x]
-     | h :: t as l -> x :: l
-  in
+
 
   (* Raise an exception of the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -47,58 +40,6 @@ let check (globals, funcs, events, elements, world) =
     | Pair -> "pair"
     | Color -> "color"
   in
-
-let globalsList = List.map varName globals in
-let wlocalsList = List.map varName world.init_locals in
-let bigList = globalsList @ wlocalsList in
-
-let func_create func =
-  insert func.fname bigList;
-  bigList = (List.map bindName func.formals) @ (List.map varName func.locals) @ bigList;
-in
-List.iter func_create funcs;
-
-let evnt_create evnt =
-  insert evnt.evname bigList;
-in
-List.iter evnt_create events;
-
-let elmnt_create elmnt =
-  insert elmnt.ename bigList;
-in
-List.iter elmnt_create elements;
-
-report_duplicate (fun n -> "duplicate names " ^ n) bigList;
-
-(*
-let check_function func =
-
-  report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
-      (List.map bindName func.formals);
-
-  report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
-      (List.map varName func.locals);
-
-  insert func.fname bigList;
- *)
-
-
-  (* let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
-    symbol func.formals
-  in *)
-
-  (* Type of each variable locals *)
-  (* let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
-    symbol func.locals
-  in *)
-
-  (* stmt (Block func.body); *)
-
-  (* in
-  List.iter check_function funcs; *)
-
-
-
 
   (**** Checking Global Variables ****)
   report_duplicate (fun n -> "duplicate global " ^ n) (List.map varName globals);
@@ -176,7 +117,7 @@ let check_function func =
 
      in
 
-    (* let check_function func =
+    let check_function func =
 
       report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
         (List.map bindName func.formals);
@@ -196,7 +137,7 @@ let check_function func =
   stmt (Block func.body);
 
   in
-  List.iter check_function funcs; *)
+  List.iter check_function funcs;
 
 
   (* build a map given a list of members *)
@@ -251,9 +192,9 @@ List.iter check_elements elements;
           exist "size" Pair wMems;
 
     (* build a map of variables within scope *)
-    (* let symbol = List.fold_left addVar symbol w.w_properties in
+    let symbol = List.fold_left addVar symbol w.w_properties in
 
-    let symbol = List.fold_left addVar symbol w.init_locals in *)
+    let symbol = List.fold_left addVar symbol w.init_locals in
 
     (* check for duplicate world properties *)
     report_duplicate (fun n -> "Duplicate variable <" ^ n ^ "> in your world properties")
