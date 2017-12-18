@@ -24,7 +24,10 @@ let check (globals, funcs, events, elements, world) =
   (* get variable name *)
   let bindName = function (_, n) -> n in
 
-
+  (* get elements from function and add to list*)
+  let rec insert x = function
+     | [] -> [x]
+     | h :: t as l -> x :: l;;
 
   (* Raise an exception of the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -40,6 +43,47 @@ let check (globals, funcs, events, elements, world) =
     | Pair -> "pair"
     | Color -> "color"
   in
+
+let globalsList = List.map varName globals in
+let wlocalsList = List.map varName world.init_locals in
+let bigList = globalsList @ wlocalsList @ events.evname @ elements.ename 
+
+let func_create func = 
+  insert func.fname bigList;
+  let bigList = (List.map bindName func.formals) @ (List.map bindName func.locals) @ bigList
+in
+List.iter func_create funcs;
+
+report_duplicate (fun n -> "duplicate names " ^ n) bigList;
+(* 
+let check_function func =
+
+  report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
+      (List.map bindName func.formals);
+
+  report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
+      (List.map varName func.locals);
+
+  insert func.fname bigList;
+ *)
+
+
+  (* let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
+    symbol func.formals
+  in *)
+
+  (* Type of each variable locals *)
+  (* let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+    symbol func.locals
+  in *)
+
+  (* stmt (Block func.body); *)
+
+  (* in
+  List.iter check_function funcs; *)
+
+
+
 
   (**** Checking Global Variables ****)
   report_duplicate (fun n -> "duplicate global " ^ n) (List.map varName globals);
