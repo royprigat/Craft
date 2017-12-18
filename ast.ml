@@ -34,7 +34,7 @@ type stmt =
   | Condition of stmt * stmt
   | While of expr * stmt
   | New of element_decl
-  | ECall of string * string * expr list
+  | ECall of string * string
 
 (* Variable declaration  *)
 type var_decl =  typ * string * expr
@@ -135,14 +135,14 @@ let rec string_of_stmt = function
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
-  | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
+  | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"
  
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
-let string_of_event_formals (id1, id2) = id1 ^ " " ^ id2
+let string_of_event_formals (id) = id1
 
 let string_of_fdecl fdecl =
   "\ndef " ^ string_of_typ fdecl.typ ^ " " ^
@@ -154,7 +154,7 @@ let string_of_fdecl fdecl =
 
 let string_of_events event =
   "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
-  (List.map string_of_event_formals event.eformals) ^ ") " ^
+  (List.map string_of_expr event.eformals) ^ ") " ^
   "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"

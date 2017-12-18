@@ -106,8 +106,8 @@ property:
 
 /* Event arguments */
 event_formals_list:
-    ID ID                           { [($1,$2)] }
-  | event_formals_list COMMA ID ID  { ($3,$4) :: $1 }
+    ID                           { [($1)] }
+  | event_formals_list COMMA ID  { ($3) :: $1 }
 
 /* Events */
 event_list:
@@ -156,7 +156,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	    { If($3, $5, Block([])) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt 		      { If($3, $5, $7) }
 	| WHILE LPAREN expr RPAREN stmt 			          { While($3, $5)}
-  | ID LPAREN ID LPAREN actuals_opt RPAREN RPAREN { ECall($1, $3, $5) }
+  | ID LPAREN ID RPAREN                           { ECall($1, $3) }
 
 /* Expressions */
 expr:
