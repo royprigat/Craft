@@ -14,6 +14,6 @@ world {
         color = "f4f441";
     }
 
-    element player1 roy = new player1(100,100);
-    element player2 daniel = new player2(300,300);
+    element player1 = new player1(100,100);
+    element player2 = new player2(300,300);
 }
