@@ -40,7 +40,7 @@ type stmt =
 type var_decl =  typ * string * expr
 
 (* Event formals *)
-type event_formal = string * string
+type event_formal = string
 
 (* Function declaration *)
 type func_decl = {
