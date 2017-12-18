@@ -1,7 +1,7 @@
 event move_up(player p) {
     condition = key_press("UP");
     action {
-        p.pos.y = p.pos.y + 5;
+        
     }
 }
 

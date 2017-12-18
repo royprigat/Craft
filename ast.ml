@@ -18,8 +18,8 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of expr * expr
-  | Access of string * string
-  | PosAccess of string * expr
+  | PAccess of string * string * expr
+  | CAccess of string * string
   | Keypress of expr
   | Call of string * expr list
   | Noexpr
@@ -120,7 +120,8 @@ let rec string_of_expr = function
 | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-| PosAccess(s,e) -> s ^ ".pos." ^ string_of_expr e
+| PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ string_of_expr e
+| CAccess(s1,s2) -> s1 ^ "." ^ s2 
 | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 
