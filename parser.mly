@@ -7,7 +7,7 @@
 %token ASSIGN EQ NEQ LT LEQ GT GEQ AND OR NOT
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
-%token INT FLOAT BOOL VOID TRUE FALSE
+%token INT FLOAT STRING BOOL VOID TRUE FALSE
 %token SIZE DIRECT COLOR PAIR SPEED POS NEW ACT COND
 %token EVENT DEF PROPS ELEMENT WORLD START
 %token KEY_PRS
@@ -38,20 +38,21 @@
 
 /* Entry point */
 program:
-  var_decl_list func_decl_list event_list element_list world EOF 
+  var_decl_list func_decl_list event_list element_list world EOF
   { (List.rev $1, List.rev $2, List.rev $3, List.rev $4, $5) }
 
 /* Primitive types */
 typ:
     INT   { Int }
   | FLOAT { Float }
+  | STRING { String }
   | BOOL  { Bool }
   | VOID  { Void }
   | COLOR { Color }
   | PAIR  { Pair }
 
 /* Variables*/
-var_decl_list:             	  
+var_decl_list:
   { [] }
   | var_decl_list var_decl 		{ $2 :: $1 }
 
@@ -63,7 +64,7 @@ element_decl:
   ELEMENT ID ASSIGN NEW ID expr SEMI  { New($2,$5,$6) }
 
 /* Functions */
-func_decl_list:                   
+func_decl_list:
   { [] }
   | func_decl_list func_decl 	{ $2 :: $1 }
 
@@ -78,7 +79,7 @@ func_decl:
   }}
 
 /* Function arguments */
-formals_list_opt:             
+formals_list_opt:
   { [] }
   | formals_list               { List.rev $1 }
 
@@ -95,7 +96,7 @@ actuals_list:
   | actuals_list COMMA expr { $3 :: $1 }
 
 /* Properties */
-property_list:            
+property_list:
   { [] }
   | property_list property 	       { $2 :: $1 }
 
@@ -124,20 +125,20 @@ event:
   }}
 
 /* Elements */
-element_list: 
-  { [] } 
+element_list:
+  { [] }
   | element_list element 	{ $2 :: $1 }
 
-element: 
+element:
 	ELEMENT ID LBRACE property_list RBRACE
-  {{ 
+  {{
     ename = $2;
-    e_properties = List.rev $4; 
+    e_properties = List.rev $4;
   }}
 
 /* World */
 world:
-	WORLD LBRACE PROPS LBRACE property_list RBRACE var_decl_list stmt_list RBRACE   
+	WORLD LBRACE PROPS LBRACE property_list RBRACE var_decl_list stmt_list RBRACE
 	{{
     w_properties = List.rev $5;
     init_locals = List.rev $7;
@@ -150,7 +151,7 @@ stmt_list:          { [] }
 
 stmt:
 	  expr SEMI 									                  { Expr $1 }
-  | element_decl                                  { $1 }                          
+  | element_decl                                  { $1 }
 	| RETURN expr SEMI 							                { Return $2 }
 	| LBRACE stmt_list RBRACE 					            { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	    { If($3, $5, Block([])) }
@@ -193,5 +194,3 @@ literals:
   | ID  			                    { Id($1) }
   | COLOR                         { Id("color") }
   | SIZE                          { Id("size") }
-
-
