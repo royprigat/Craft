@@ -1,12 +1,12 @@
 event move_up(player) {
     condition = key_press("UP");
     action {
-        player.pos.y = player.pos.y + 5;
+      player.pos.y = 10 + 50;
     }
 }
 
 element player {
-    size = (5,50);
+    size = (50,50);
     color = "4268f4";
 }
 
@@ -15,7 +15,9 @@ world {
         size = (500,500);
         color = "f4f441";
     }
+    #int x = 10;
 
     element player = new player(100,100);
     add_event(move_up);
+    player.pos.y = 10 + 50;
 }
