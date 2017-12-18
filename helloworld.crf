@@ -1,6 +1,22 @@
+event move_up(player) {
+    condition = key_press("UP");
+    action {
+       player.pos.x = 50;
+    }
+}
+
+element player {
+    size = (5,5);
+    color = "aaaaaa";
+}
+
+
 world {
     properties {
         size = (500,200);
         color = "42f4eb";
     }
+
+    element player = new player(20,20);
+    add_event(move_up);
 }
