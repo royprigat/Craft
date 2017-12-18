@@ -39,9 +39,9 @@ int doElementsCollide(struct element *e1, struct element *e2){
     return 0;
 
 }
-void (*event_fn)();
+void (*event_fn)(struct element*);
 
-void testfn(void (*a)()){
+void testfn(void (*a)(struct element*)){
     printf("Running test fn");
     event_fn = a;
 }
@@ -270,7 +270,7 @@ int world( )
             keystate = SDL_GetKeyboardState(NULL);
 
             if(event_fn != NULL){
-                event_fn();
+                event_fn((struct element*)element_list->data);
             }
 
             if(refresh){
