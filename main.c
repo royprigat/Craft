@@ -78,7 +78,7 @@ int isPressed(char *key){
 void render_element(struct element *e) {
     SDL_Rect rect;
     rect.x = e->position.left;
-    rect.y = e->position.right;
+    rect.y = SCREEN_WIDTH - e->position.right;
     rect.w = e->size.left;
     rect.h = e->size.right;
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
