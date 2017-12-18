@@ -176,9 +176,9 @@ expr:
   | NOT expr  					                          { Unop(Not, $2) }
   | MINUS expr %prec NEG 		                      { Unop(Neg, $2) }
   | expr ASSIGN expr                              { Assign($1, $3) }
-  | ID PERIOD POS PERIOD expr                     { PAccess($1,"pos",$5) }
+  | ID PERIOD POS PERIOD ID                       { PAccess($1,"pos",$5) }
   | ID PERIOD COLOR                               { CAccess($1,"color") }
-  | ID PERIOD SIZE PERIOD expr                    { PAccess($1,"size",$5) }
+  | ID PERIOD SIZE PERIOD ID                      { PAccess($1,"size",$5) }
   | ID LPAREN actuals_opt RPAREN                  { Call($1, $3) }
   | LPAREN expr RPAREN 			                      { $2 }
   | LPAREN expr COMMA expr RPAREN                 { Pr($2,$4) }
@@ -193,3 +193,5 @@ literals:
   | ID  			                    { Id($1) }
   | COLOR                         { Id("color") }
   | SIZE                          { Id("size") }
+
+
