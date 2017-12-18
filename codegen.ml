@@ -179,17 +179,24 @@ let translate (globals, funcs, events, elements, world) =
       let y_ptr = L.build_struct_gep pr_ptr 1 "y" builder in
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
-(* 
-   | A.Assign (e1, e2) ->
-      let new_val = expr 
+
+(*     | A.PAccess (s1,s2,e) ->
+      let e' = expr builder map e in
+      (match s2 with 
+        | "pos" -> let elem_ptr = StringMap.find (s1 ^ )
+        | "size" ->
+      ) 
+
+    | A.Assign (e1, e2) ->
+      let e' = expr builder map e1 in 
 
       (match e1 with
-        |A.PosAccess (n,e) ->
+        |A.PAccess (n,e) ->
           let x_or_y = expr builder map e in 
 
-      ) *)
-
-
+      ) 
+  
+ *)
 
   in
 
@@ -207,46 +214,18 @@ let translate (globals, funcs, events, elements, world) =
         A.Block sl -> List.fold_left (fun builder s -> stmt builder map s) builder sl
       | A.Expr e -> ignore (expr builder map e); builder
       | A.New elem -> 
-        let (e_typ, e_id, e_typ_check, e_pos) = elem in
+        let (e_typ, e_typ_check, e_pos) = elem in
+
+        let elem_name = (e_typ ^ "_element") in
         
         (*run the store_elem_func and get the pointer to generic element struct*)
         let store_elem_func = StringMap.find ("store_" ^ e_typ ^ "_element") map in
-        let generic_elem_ptr = L.build_call store_elem_func [||] "" builder in
-
-        (*get size and color values from the generic struct*)
-        let generic_size_ptr = L.build_struct_gep generic_elem_ptr 1 ("elem_size_ptr") builder in  
-        let generic_size = L.build_load generic_size_ptr "elem_size" builder in
-
-        let generic_color_ptr = L.build_struct_gep generic_elem_ptr 3 ("elem_color_ptr") builder in
-        let generic_color = L.build_load generic_color_ptr "elem_color" builder in
-
-
-        (*store a new struct for new element added*)
-        let id_elem_name = (e_id ^ "_" ^ e_typ ^ "_element") in
-        let elem_ptr = L.build_malloc elem_t (id_elem_name ^ "_ptr") builder in
-
-
-
-
-        (*Store name*)
-        let elem_name_str_ptr = L.build_global_stringptr e_id (id_elem_name ^ "_name_str_ptr") builder in
-        let name_ptr = L.build_struct_gep elem_ptr 0 (id_elem_name ^ "_name_ptr") builder in
-        ignore (L.build_store elem_name_str_ptr name_ptr builder);
-
-        (* Element size *)
-        let size_ptr = L.build_struct_gep elem_ptr 1 (id_elem_name ^ "_size_ptr") builder in
-        ignore (L.build_store generic_size size_ptr builder);
-
-         (* Element color *)
-        let color_ptr = L.build_struct_gep elem_ptr 3 (id_elem_name ^ "_color_ptr") builder in
-        ignore (L.build_store generic_color color_ptr builder);
+        let elem_ptr = L.build_call store_elem_func [||] "" builder in
 
         (* add the new Element position *)
-        let pos_ptr = L.build_struct_gep elem_ptr 2 (id_elem_name ^ "_pos_ptr") builder in
+        let pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") builder in
         ignore (L.build_store (expr builder map e_pos) pos_ptr builder); 
   
-        
-
         (* Call add_element function *)
         ignore (L.build_call add_e [|elem_ptr|] "" builder); builder
 
@@ -256,6 +235,10 @@ let translate (globals, funcs, events, elements, world) =
         (* let condition = "UP" in  *)
         let first_id_expr = List.hd ids in (*it's an expr*)
         let first_id = string_of_expr first_id_expr in
+
+        let first_stmt = List.hd event.A.action in
+        let event_action_spec = stmt builder map first_stmt in
+
 
 
 
@@ -387,7 +370,7 @@ in
 
 let elements_map = 
   let build_element_body m element =
-    let the_element = StringMap.find (element.A.ename ^ "_element") elements_helper_map in
+    (* let the_element = StringMap.find (element.A.ename ^ "_element") elements_helper_map in *)
 
 
 
@@ -402,10 +385,10 @@ let elements_map =
     (* Element struct pointer *)
     let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") elem_builder in
  
-    (* (* Element ID *)
-    let elem_id_str_ptr = L.build_global_stringptr e_id (elem_name ^ "_id_str_ptr") elem_builder in
-    let id_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_id_ptr") elem_builder in
-    ignore (L.build_store elem_id_str_ptr id_ptr elem_builder); *)
+    (* Element name *)
+    let elem_name_str_ptr = L.build_global_stringptr element.A.ename (elem_name ^ "_id_str_ptr") elem_builder in
+    let elem_name_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_name_ptr") elem_builder in
+    ignore (L.build_store elem_name_str_ptr elem_name_ptr elem_builder);
     
     (* Element size *)
     let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") elem_builder in
