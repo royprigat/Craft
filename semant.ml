@@ -41,6 +41,28 @@ let check (globals, funcs, events, elements, world) =
     | Color -> "color"
   in
 
+  let rec string_of_expr = function
+    ILiteral(l) -> string_of_int l
+  | FLiteral(l) -> string_of_float l
+  | BLiteral(true) -> "true"
+  | BLiteral(false) -> "false"
+  | SLiteral(s) -> s
+  | Pr(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
+  | Cr(c) -> string_of_expr c
+  | Id(s) -> s
+  | Binop(e1, o, e2) ->
+    string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
+  | Unop(o, e) -> string_of_uop o ^ string_of_expr e
+  | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
+  | Call(f, el) ->
+    f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  (* | PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ string_of_expr e
+  | CAccess(s1,s2) -> s1 ^ "." ^ s2
+  | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")" *)
+  | Noexpr -> ""
+
+  in
+
   (**** Checking Global Variables ****)
   report_duplicate (fun n -> "duplicate global " ^ n) (List.map varName globals);
 
@@ -53,10 +75,18 @@ let check (globals, funcs, events, elements, world) =
     report_duplicate (fun n -> "duplicate function " ^ n)
       (List.map (fun fd -> fd.fname) funcs);
 
-    let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
-                             StringMap.empty funcs in
+   let built_in_decls =  StringMap.add "print"
+    { typ = Int; fname = "print"; formals = [(Int, "x")];
+      locals = []; body = [] }
+      (StringMap.singleton "add"
+    { typ = Int; fname = "add"; formals = [(Bool, "e") ; (Pair, "pos")];
+      locals = []; body = [] })
+   in
 
-    let function_decl s = try StringMap.find s function_decls
+  let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
+                     built_in_decls funcs in
+
+  let function_decl s = try StringMap.find s function_decls
            with Not_found -> raise (E.UnrecognizedFunction(s)) in
 
 
@@ -109,6 +139,14 @@ let check (globals, funcs, events, elements, world) =
      | Pr(x,y) -> let x1 = expr m x and y1 = expr m y in
        if (x1 = Int && y1 = Int) then Pair
        else raise (E.IncorrectPairType("Please enter int inputs for type pair"))
+     (* | Call(fname, actuals) as call -> let fd = function_decl fname in
+              if List.length actuals != List.length fd.formals then
+                raise (Failure ("expecting " ^ string_of_int
+                (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
+              else
+               *)
+
+
      in
 
      (* Verify a statement or throw an exception *)
@@ -165,27 +203,6 @@ let check (globals, funcs, events, elements, world) =
   (* add variable to a map *)
 let addVar m (t, n, e) = StringMap.add n t m in
 
-let rec string_of_expr = function
-  ILiteral(l) -> string_of_int l
-| FLiteral(l) -> string_of_float l
-| BLiteral(true) -> "true"
-| BLiteral(false) -> "false"
-| SLiteral(s) -> s
-| Pr(x,y) -> "(" ^ string_of_expr x ^ "," ^ string_of_expr y ^ ")"
-| Cr(c) -> string_of_expr c
-| Id(s) -> s
-| Binop(e1, o, e2) ->
-  string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-| Unop(o, e) -> string_of_uop o ^ string_of_expr e
-| Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
-| Call(f, el) ->
-  f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-| PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ string_of_expr e
-| CAccess(s1,s2) -> s1 ^ "." ^ s2
-| Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
-| Noexpr -> ""
-
-in
 (* check if types in var_decl match *)
 let checkVars m = function
 (t,n,e) -> let ty = expr m e in
