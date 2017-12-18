@@ -19,6 +19,14 @@ module E = Exceptions
 module StringMap = Map.Make(String)
 
 
+let print_map m =
+  print_string ("Map:\n");
+  let print_key k v =
+    print_string (k ^ "\n")
+  in
+  StringMap.iter print_key m;;
+
+
 
 let translate (globals, funcs, events, elements, world) =
   let context = L.global_context () in
@@ -180,23 +188,71 @@ let translate (globals, funcs, events, elements, world) =
       ignore (L.build_store e2' y_ptr builder);
       L.build_load pr_ptr "p" builder
 
-(*     | A.PAccess (s1,s2,e) ->
-      let e' = expr builder map e in
-      (match s2 with 
-        | "pos" -> let elem_ptr = StringMap.find (s1 ^ )
-        | "size" ->
-      ) 
+    | A.PAccess (s1,s2,e) ->
+      let x_or_y = string_of_expr e in (*either x or y*)
+      (match x_or_y with
+        | "x" ->
+          (match s2 with 
+            | "pos" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                        let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem_pos_ptr") builder in 
+                          let x_ptr = L.build_struct_gep pos_ptr 0 ("x_ptr") builder in
+                              L.build_load x_ptr "x" builder; (*return the x value in llvm type*)
+
+            | "size" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                          let size_ptr = L.build_struct_gep elem_ptr 2 ("elem_size_ptr") builder in 
+                            let x_ptr = L.build_struct_gep size_ptr 0 ("x_ptr") builder in
+                              L.build_load x_ptr "x" builder; (*NEED SEMI COLON????*)
+          ) 
+        | "y" ->
+          (match s2 with 
+            | "pos" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                        let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem_pos_ptr") builder in 
+                          let y_ptr = L.build_struct_gep pos_ptr 1 ("y_ptr") builder in
+                            L.build_load y_ptr "y" builder; (*return the y value in llvm type*)
+            | "size" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                          let size_ptr = L.build_struct_gep elem_ptr 2 ("elem_size_ptr") builder in 
+                            let y_ptr = L.build_struct_gep size_ptr 1 ("y_ptr") builder in
+                              L.build_load y_ptr "y" builder;             
+          ) 
+      )
+
 
     | A.Assign (e1, e2) ->
-      let e' = expr builder map e1 in 
+      let e' = expr builder map e2 in (* should bribg back calculated value *)
+      (* let e' = L.const_int i32_t 25 in *)
 
       (match e1 with
-        |A.PAccess (n,e) ->
-          let x_or_y = expr builder map e in 
+        |A.PAccess (s1,s2,e) ->
+          let x_or_y = string_of_expr e in 
+          (match s2 with
+            | "pos" ->
+              (match x_or_y with 
+                | "x" ->  let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                            let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem_pos_ptr") builder in 
+                              let x_ptr = L.build_struct_gep pos_ptr 0 ("x_ptr") builder in
+                                L.build_store e' x_ptr builder;
+                | "y" ->  let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                            let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem_pos_ptr") builder in 
+                              let y_ptr = L.build_struct_gep pos_ptr 1 ("y_ptr") builder in
+                                L.build_store e' y_ptr builder;
+              )
+            | "size" -> 
+              (match x_or_y with
+                  | "x" ->  let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                              let size_ptr = L.build_struct_gep elem_ptr 2 ("elem_size_ptr") builder in 
+                                let x_ptr = L.build_struct_gep size_ptr 0 ("x_ptr") builder in
+                                  L.build_store e' x_ptr builder;
+                  | "y" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                            let size_ptr = L.build_struct_gep elem_ptr 2 ("elem_size_ptr") builder in 
+                              let y_ptr = L.build_struct_gep size_ptr 1 ("y_ptr") builder in
+                                L.build_store e' y_ptr builder;
+              )     
+          )
+
 
       ) 
   
- *)
+
 
   in
 
@@ -229,12 +285,14 @@ let translate (globals, funcs, events, elements, world) =
         (* Call add_element function *)
         ignore (L.build_call add_e [|elem_ptr|] "" builder); builder
 
-      | A.ECall ("add_event", event_name, ids) -> 
+      | A.ECall ("add_event", event_name) -> 
         let event = StringMap.find (event_name ^ "_event") events_helper_map in
-        (* let condition = (expr builder event.A.condition) in (*condition is now "UP"*) *)
-        (* let condition = "UP" in  *)
-        let first_id_expr = List.hd ids in (*it's an expr*)
-        let first_id = string_of_expr first_id_expr in
+        
+        let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
+
+        let first_elem = List.hd event.A.eformals in (*it's a string. ex player which is now the name*)
+        let elem_ptr = StringMap.find (first_elem ^ "_element") map in
+
 
         let first_stmt = List.hd event.A.action in
         let event_action_spec = stmt builder map first_stmt in
@@ -245,20 +303,21 @@ let translate (globals, funcs, events, elements, world) =
 
         (* assume we have keypress-up for now *)
         let event_func_type = L.function_type (L.void_type context) [||] in
-        let event_func = L.define_function "test_event_func" event_func_type the_module in
-        let new_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
+        let event_func = L.define_function "event_func" event_func_type the_module in
+        let event_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
         (* let condition = string_of_expr event.A.condition in (*condition is now "UP"*) *)
-        let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
         (* let str_ptr = L.build_alloca str_t "test_str_ptr" new_builder in 
          *)
 
        (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
-        let cond_str_ptr = L.build_global_stringptr condition ("test_str_ptr") new_builder in
-        let elem_name_str_ptr = L.build_global_stringptr "roy" ("roy_str_ptr") new_builder in
-        let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" new_builder in (*stored in new basic block*)
+        let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
+        let elem_name_str_ptr = L.build_global_stringptr first_elem (first_elem ^ "_str_ptr") event_builder in
+        
+        (*call the c function and get a yes or no*)
+        let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" event_builder in (*stored in new basic block*)
    
-        let is_pressed_bb = L.append_block context ("pressed_"^condition) event_func in
-        let not_pressed_bb = L.append_block context ("not_pressed_"^condition) event_func in
+        let is_pressed_bb = L.append_block context ("pressed_" ^ condition) event_func in
+        let not_pressed_bb = L.append_block context ("not_pressed_" ^ condition) event_func in
 
         let is_pressed_builder = L.builder_at_end context is_pressed_bb in
         (* let elem_ptr = L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder in *)
@@ -282,22 +341,15 @@ let translate (globals, funcs, events, elements, world) =
         ignore (L.build_br not_pressed_bb is_pressed_builder);
 
 
-       let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) new_builder in
-        ignore(L.build_cond_br compare_instruction is_pressed_bb not_pressed_bb new_builder);
+        let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) event_builder in
+        ignore(L.build_cond_br compare_instruction is_pressed_bb not_pressed_bb event_builder);
    
-        
-       
-        ignore (L.build_call c_print_func [||] "" new_builder); (*stored in new basic block*)
+        ignore (L.build_call c_print_func [||] "" event_builder); (*stored in new basic block*)
       
-        (* ignore(L.build_call is_key_pressed_func [|str_ptr|] "" new_builder); *)
-
 
         let some_builder = L.builder_at_end context not_pressed_bb in
-
-
         ignore (L.build_call c_test_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
-    
-        ignore (L.build_ret_void new_builder); (*need it...not sure why*)
+        ignore (L.build_ret_void event_builder); (*need it...not sure why*)
         ignore (L.build_ret_void some_builder); (*???*)
         (* print_test_func new_builder; (*test*) *)
         (* L.const_int i32_t 0 dummy return value *)
@@ -405,7 +457,8 @@ let elements_map =
 
     (*need a return value for the builder/func*)
     ignore (L.build_ret elem_ptr elem_builder); (*not sure about this return val*)
-    StringMap.add ("store_" ^ elem_name) store_elem_func m (*return this map*)
+    let m = StringMap.add elem_name elem_ptr m in (*store the elem ptr in map*)
+    StringMap.add ("store_" ^ elem_name) store_elem_func m (*store ptr to elem store func in map and return this map*)
   in
   List.fold_left build_element_body functions_map elements 
 in
@@ -465,5 +518,6 @@ in
   
   (* ignore (L.build_call start_render_func [||] "" main_func_builder);  *)
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
+  print_map elements_map;
 
 the_module

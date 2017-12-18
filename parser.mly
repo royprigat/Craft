@@ -156,7 +156,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	    { If($3, $5, Block([])) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt 		      { If($3, $5, $7) }
 	| WHILE LPAREN expr RPAREN stmt 			          { While($3, $5)}
-  | ID LPAREN ID RPAREN                           { ECall($1, $3) }
+  | ID LPAREN ID RPAREN SEMI                          { ECall($1, $3) }
 
 /* Expressions */
 expr:

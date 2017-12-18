@@ -142,7 +142,7 @@ let string_of_vars = function
 
 let string_of_args (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
-let string_of_event_formals (id) = id1
+let string_of_event_formals (id) = id
 
 let string_of_fdecl fdecl =
   "\ndef " ^ string_of_typ fdecl.typ ^ " " ^
@@ -154,7 +154,7 @@ let string_of_fdecl fdecl =
 
 let string_of_events event =
   "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
-  (List.map string_of_expr event.eformals) ^ ") " ^
+  (List.map string_of_event_formals event.eformals) ^ ") " ^
   "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"
