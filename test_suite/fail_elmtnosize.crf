@@ -1,4 +1,5 @@
 element player1 {
+    # fail with no size given to element
     color = "4268f4";
 }
 

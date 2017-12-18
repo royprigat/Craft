@@ -1,8 +1,11 @@
 
+
 world {
     properties {
         size = (500,500);
         color = "f4f441";
     }
-    int a = 6 + (5,5);
+    int i = 3;
+    return i;
+    float a = 5.9;
 }
