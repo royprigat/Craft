@@ -24,7 +24,7 @@ type expr =
   | Call of string * expr list
   | Noexpr
 
-type element_decl = string * string * string * expr
+type element_decl = string * string * expr
 
 type stmt =
     Block of stmt list
@@ -134,7 +134,7 @@ let rec string_of_stmt = function
   | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-  | New(a,b,c,d) -> "element " ^ a ^ " " ^ b ^ " = new " ^ c  ^ string_of_expr d ^ ";\n"
+  | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
   | ECall(f,evnt,el) -> f ^ "(" ^ evnt ^ "(" ^ String.concat "(" (List.map string_of_expr el) ^ ")" ^ ")"
  
 let string_of_vars = function

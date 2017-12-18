@@ -60,7 +60,7 @@ var_decl:
 
 /* Element declaration */
 element_decl:
-  ELEMENT ID ID ASSIGN NEW ID expr SEMI  { New($2,$3,$6,$7) }
+  ELEMENT ID ASSIGN NEW ID expr SEMI  { New($2,$5,$6) }
 
 /* Functions */
 func_decl_list:                   
