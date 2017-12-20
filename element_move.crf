@@ -26,16 +26,36 @@ event move_left(player1) {
     }
 }
 
-
 element player1 {
     size = (50,50);
     color = "4268f4";
-    direction = 30;
-    speed = 1;
+    direction = 90;
+    speed = 2;
 }
 
 element wall_left {
-    size = (15,150);
+    size = (15,600);
+    color = "4268f4";
+    direction = 0;
+    speed = 0;
+}
+
+element wall_right {
+    size = (15,600);
+    color = "4268f4";
+    direction = 0;
+    speed = 0;
+}
+
+element wall_up {
+    size = (600,15);
+    color = "4268f4";
+    direction = 0;
+    speed = 0;
+}
+
+element wall_down {
+    size = (600,15);
     color = "4268f4";
     direction = 0;
     speed = 0;
@@ -48,7 +68,10 @@ world {
     }
 
     element player1 = new player1(100,100);
-    element wall_left = new wall_left(200,400);
+    element wall_left = new wall_left(0,0);
+    element wall_up = new wall_up(0,0);
+    element wall_right = new wall_right(580,0);
+    element wall_down = new wall_down(0,580);
     add_event(move_up);
     add_event(move_down);
     add_event(move_right);
