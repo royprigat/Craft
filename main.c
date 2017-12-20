@@ -83,6 +83,15 @@ void move(char *name, char *direction){
         return;
     }
 
+    iterator = NULL;
+    // render_element(&ele);
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        if(doElementsCollide(e, (struct element*)iterator->data)){
+            return;
+        }
+    }
+
     refresh = 1;
     if (strcmp(direction, "UP") == 0){
         moveUp(e);

@@ -1,0 +1,12 @@
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+    int a = 6;
+    bool b = true;
+    a - b;
+    a * b;
+    a / b; # fail with binary operator on different types
+}
