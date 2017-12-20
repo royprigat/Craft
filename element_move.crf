@@ -30,16 +30,20 @@ event move_left(player1) {
 element player1 {
     size = (50,50);
     color = "4268f4";
+    direction = 30;
+    speed = 1;
 }
 
 element wall_left {
-    size = (10,400);
+    size = (15,150);
     color = "4268f4";
+    direction = 0;
+    speed = 0;
 }
 
 world {
     properties {
-        size = (500,500);
+        size = (600,600);
         color = "f4f441";
     }
 
@@ -49,4 +53,5 @@ world {
     add_event(move_down);
     add_event(move_right);
     add_event(move_left);
+
 }

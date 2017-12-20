@@ -8,7 +8,7 @@
 %token PERIOD COLLIDE
 %token IF ELSE WHILE RETURN
 %token INT FLOAT STRING BOOL VOID TRUE FALSE
-%token SIZE DIRECT COLOR PAIR SPEED POS NEW ACT COND
+%token SIZE DIRECTION COLOR PAIR SPEED POS NEW ACT COND
 %token EVENT DEF PROPS ELEMENT WORLD START
 %token KEY_PRS
 
@@ -101,9 +101,11 @@ property_list:
   | property_list property 	       { $2 :: $1 }
 
 property:
-    var_decl                 { $1 }
-	| SIZE ASSIGN expr SEMI 	 { (Pair, "size", $3) }
-	| COLOR ASSIGN expr SEMI 	 { (Color, "color", $3) }
+    var_decl                    { $1 }
+	| SIZE ASSIGN expr SEMI 	    { (Pair, "size", $3) }
+	| COLOR ASSIGN expr SEMI 	    { (Color, "color", $3) }
+  | DIRECTION ASSIGN expr SEMI  { (Int, "direction", $3) }
+  | SPEED ASSIGN expr SEMI      { (Int, "speed", $3) }
 
 /* Event arguments */
 event_formals_list:

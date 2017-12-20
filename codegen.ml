@@ -36,7 +36,7 @@ let translate (globals, funcs, events, elements, world) =
   let pair_t = L.named_struct_type context "pair_t" in
   L.struct_set_body pair_t [|i32_t; i32_t|] false;
   let elem_t = L.named_struct_type context "elem_t" in
-  L.struct_set_body elem_t [|str_t; pair_t; pair_t; str_t; L.pointer_type (L.function_type (L.void_type context) [| L.pointer_type elem_t |])|] false;
+  L.struct_set_body elem_t [|str_t; pair_t; pair_t; str_t; i32_t; i32_t|] false;
   let world_t = L.named_struct_type context "world_t" in
   L.struct_set_body world_t [|pair_t;str_t|] false;
 
@@ -519,63 +519,16 @@ in
     let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") new_builder in
     ignore (L.build_store elem_color_str_ptr color_ptr new_builder);
 
+    (* Element direction *)
+    let elem_direction_ptr = L.build_struct_gep elem_ptr 4 (elem_name ^ "_direction_ptr") new_builder in
+    let direction_expr = get_var_expr "direction" element.A.e_properties in 
+    ignore (L.build_store (expr new_builder m direction_expr) elem_direction_ptr new_builder);
 
+    (* Element speed *)
+    let elem_speed_ptr = L.build_struct_gep elem_ptr 5 (elem_name ^ "_speed_ptr") new_builder in
+    let speed_expr = get_var_expr "speed" element.A.e_properties in 
+    ignore (L.build_store (expr new_builder m speed_expr) elem_speed_ptr new_builder);
 
-    (*
-    (*******start**)
-    (*what if we build the event function inside the element *)
-    (* let event = StringMap.find (event_name ^ "_event") events_helper_map in *)
-    let event = StringMap.find ("move_up1" ^ "_event") events_helper_map in (*HARD CODED...*)
-    let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
-    let first_elem = List.hd event.A.eformals in (*it's a string. ex player which is now the name*)
-    let first_stmt = List.hd event.A.action in
-
-    let event_func_type = L.function_type (L.void_type context) [|L.pointer_type elem_t|] in
-    let event_func = L.define_function "event_func" event_func_type the_module in
-    let event_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
-
-    let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
-    let elem_name_str_ptr = L.build_global_stringptr first_elem (first_elem ^ "_str_ptr") event_builder in
-
-    (*call the c function and get a yes or no*)
-    let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" event_builder in (*stored in new basic block*)
-
-    let is_pressed_bb = L.append_block context ("pressed_" ^ condition) event_func in
-    let merge_bb = L.append_block context ("not_pressed_" ^ condition) event_func in
-
-    let is_pressed_builder = L.builder_at_end context is_pressed_bb in
-    
-    ignore(L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder);
-    (* ignore(stmt is_pressed_builder m first_stmt); *)
-    (* ignore(stmt new_builder m first_stmt); *)
-    (* ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
-    ignore (L.build_br merge_bb is_pressed_builder);
-    let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) event_builder in
-    ignore(L.build_cond_br compare_instruction is_pressed_bb merge_bb event_builder);
-       
-    ignore(L.build_ret_void (L.builder_at_end context merge_bb));
-
-
-    let event_func_ptr = L.build_struct_gep elem_ptr 4 (elem_name ^ "_event_func_ptr") new_builder in
-    ignore (L.build_store event_func event_func_ptr new_builder);
-
-
-    (* ignore (L.build_call c_test_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*) *)
-    *)
-
-
-
-
-
-
-
-    (**********end*)
-
-
-    (*need a return value for the builder/func*)
-    (* ignore (L.build_ret elem_ptr elem_builder); (*not sure about this return val*) *)
-    (* let m = StringMap.add elem_name elem_ptr m in (*store the elem ptr in map*) *)
-    (* (StringMap.add ("store_" ^ elem_name) store_elem_func m, builder) (*store ptr to elem store func in map and return this map*) *)
     
     ignore (L.build_ret elem_ptr new_builder); (*the functions return value*)
 

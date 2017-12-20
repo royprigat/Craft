@@ -49,6 +49,8 @@ rule token = parse
   | "false"     { FALSE }
   | "size"      { SIZE }
   | "color"     { COLOR }
+  | "speed"     { SPEED }
+  | "direction" { DIRECTION }
   | "pos"	      { POS }
   | "new"       { NEW }
   | "action"    { ACT }
