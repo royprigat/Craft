@@ -394,7 +394,7 @@ let translate (globals, funcs, events, elements, world) =
         ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
         L.builder_at_end context merge_bb
 
-    | A.For (e1, e2, e3, body) -> stmt builder main_func
+    | A.For (e1, e2, e3, body) -> stmt builder main_func map
       ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
 
     
