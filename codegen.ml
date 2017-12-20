@@ -75,7 +75,7 @@ let translate (globals, funcs, events, elements, world) =
   let start_render_func_type = L.function_type (L.void_type context) [||] in
   let start_render_func = L.declare_function "startRender" start_render_func_type the_module in
 
-  let c_test_func_type = L.function_type (L.void_type context) [| L.pointer_type (L.function_type (L.void_type context) [||]) |] in
+  let c_test_func_type = L.function_type (L.void_type context) [| L.pointer_type (L.function_type (L.void_type context) [|L.pointer_type elem_t|]) |] in
   let c_test_func = L.declare_function "testfn" c_test_func_type the_module in
 
   let c_print_func_type = L.function_type (L.void_type context) [||] in
@@ -84,7 +84,8 @@ let translate (globals, funcs, events, elements, world) =
   let is_key_pressed_func_type = L.function_type i32_t [|str_t|] in (* correct return type? Bool??? *)
   let is_key_pressed_func = L.declare_function "isPressed" is_key_pressed_func_type the_module in
 
-  let delete_elem_func_type = L.function_type (L.void_type context) [|str_t|] in
+  (* let delete_elem_func_type = L.function_type (L.void_type context) [|str_t|] in *)
+  let delete_elem_func_type = L.function_type (L.pointer_type elem_t) [|str_t|] in
   let delete_elem_func = L.declare_function "delete_element" delete_elem_func_type the_module in
 
   (* Helper functions *)
@@ -190,12 +191,12 @@ let translate (globals, funcs, events, elements, world) =
       print_string ("test10");
 
       (match e1 with
-        |A.PAccess (s1,s2,e) ->
-          (* let x_or_y = string_of_expr e in  *)
-          let x_or_y = "y" in
+        |A.PAccess (s1,s2,s3) ->
+          (* let x_or_y = string_of_expr e in *)
+          (* let x_or_y = "y" in *)
           (match s2 with
             | "pos" ->
-              (match x_or_y with 
+              (match s3 with 
                 | "x" ->  print_string ("test5");
                           let elem_ptr = StringMap.find (s1 ^ "_element") map in
                             let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem5_pos_ptr") builder in 
@@ -208,7 +209,7 @@ let translate (globals, funcs, events, elements, world) =
                                 L.build_store e' y_ptr builder;
               )
             | "size" -> 
-              (match x_or_y with
+              (match s3 with
                   | "x" ->  print_string ("test7");
                             let elem_ptr = StringMap.find (s1 ^ "_element") map in
                               let size_ptr = L.build_struct_gep elem_ptr 2 ("elem7_size_ptr") builder in 
@@ -224,10 +225,10 @@ let translate (globals, funcs, events, elements, world) =
 
 
       ) 
-    | A.PAccess (s1,s2,e) ->
-      (* let x_or_y = string_of_expr e in (*either x or y*) *)
-      let x_or_y = "y" in
-      (match x_or_y with
+    | A.PAccess (s1,s2,s3) ->
+      (* let x_or_y = string_of_expr e in (*either x or y*)  *)
+      (* let x_or_y = "y" in *)
+      (match s3 with
         | "x" ->
           (match s2 with 
             | "pos" -> print_string ("test1"); 
@@ -280,18 +281,19 @@ let translate (globals, funcs, events, elements, world) =
         let (e_typ, e_typ_check, e_pos) = elem in
 
         let elem_name = (e_typ ^ "_element") in
-        
-        (*run the store_elem_func and get the pointer to generic element struct*)
-        (* let store_elem_func = StringMap.find ("store_" ^ e_typ ^ "_element") map in *)
-        (* let elem_ptr = L.build_call store_elem_func [||] "" builder in *)
-        let elem_ptr = StringMap.find elem_name map in
+        let build_elem_func_name = (elem_name ^ "_build") in
+        let build_elem_func = StringMap.find build_elem_func_name map in
+        let elem_ptr = L.build_call build_elem_func [||] "test_run" builder in
+
+        (* let elem_ptr = StringMap.find elem_name map in *)
+
 
         (* add the new Element position *)
         let pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") builder in
         ignore (L.build_store (expr builder map e_pos) pos_ptr builder); 
   
         (* Call add_element function *)
-        (* ignore (L.build_call add_e [|elem_ptr|] "" builder); builder *)
+        ignore (L.build_call add_e [|elem_ptr|] "" builder);
         builder
 
       | A.ECall ("add_event", event_name) -> 
@@ -300,7 +302,12 @@ let translate (globals, funcs, events, elements, world) =
         let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
 
         let first_elem = List.hd event.A.eformals in (*it's a string. ex player which is now the name*)
-        let elem_ptr = StringMap.find (first_elem ^ "_element") map in
+        (* let elem_ptr = StringMap.find (first_elem ^ "_element") map in *)
+
+        let elem_name = (first_elem ^ "_element") in
+        let build_elem_func_name = (elem_name ^ "_build") in
+        let build_elem_func = StringMap.find build_elem_func_name map in
+       
 
 
         let first_stmt = List.hd event.A.action in
@@ -311,12 +318,14 @@ let translate (globals, funcs, events, elements, world) =
 
 
         (* assume we have keypress-up for now *)
-        let event_func_type = L.function_type (L.void_type context) [||] in
+        (* let event_func_type = L.function_type (L.void_type context) [||] in *)
+        let event_func_type = L.function_type (L.void_type context) [|L.pointer_type elem_t|] in
         let event_func = L.define_function "event_func" event_func_type the_module in
         let event_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
         (* let condition = string_of_expr event.A.condition in (*condition is now "UP"*) *)
         (* let str_ptr = L.build_alloca str_t "test_str_ptr" new_builder in 
          *)
+        let received_elem_ptr = L.param event_func 0 in (*should be return val from the function pointer C called*)
 
        (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
         let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
@@ -326,20 +335,37 @@ let translate (globals, funcs, events, elements, world) =
         let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" event_builder in (*stored in new basic block*)
    
         let is_pressed_bb = L.append_block context ("pressed_" ^ condition) event_func in
-        let not_pressed_bb = L.append_block context ("not_pressed_" ^ condition) event_func in
+        let merge_bb = L.append_block context ("not_pressed_" ^ condition) event_func in
 
         let is_pressed_builder = L.builder_at_end context is_pressed_bb in
         (* let elem_ptr = L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder in *)
         
-        ignore(L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder);
-        ignore(stmt builder map first_stmt);
-       
-        ignore (L.build_call add_e [|elem_ptr|] "" builder);
+        let elem_ptr = L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder in
+        
 
+       (*  let elem_ptr = L.build_call build_elem_func [||] "test_run2" is_pressed_builder in *) (*this call doesn't add pos.... plus it's using original size/color*)
+        (* ignore(stmt is_pressed_builder map first_stmt); *)
+
+        (*two big issues. pos is not added here, it's done in NEW. *)
+        (* biggest problem is i do not access an the latest updated values just rerendeing initial pos and trying to update that.. *)
+        ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder);
+
+
+
+
+
+        
+
+        
+        (* ignore (L.build_call add_e [|elem_ptr|] "" builder); *)
+       
+        ignore (L.build_br merge_bb is_pressed_builder);
+
+
+        let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) event_builder in
+        ignore(L.build_cond_br compare_instruction is_pressed_bb merge_bb event_builder);
 
         (* let new_pos = L.const_named_struct pair_t [|L.const_int i32_t 300; L.const_int i32_t 300|] in *)
-
-
 
         (* Element position *)
         (* let elem_pos_ptr = L.build_struct_gep elem_ptr 2 ("roy" ^ "_pos_ptr") is_pressed_builder in *)
@@ -348,26 +374,20 @@ let translate (globals, funcs, events, elements, world) =
 
         (* Call add_element function *)
        (*  ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
-
-
-
-        ignore (L.build_br not_pressed_bb is_pressed_builder);
-
-
-        let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) event_builder in
-        ignore(L.build_cond_br compare_instruction is_pressed_bb not_pressed_bb event_builder);
    
         ignore (L.build_call c_print_func [||] "" event_builder); (*stored in new basic block*)
       
 
-        let some_builder = L.builder_at_end context not_pressed_bb in
+        let some_builder = L.builder_at_end context merge_bb in
         ignore (L.build_call c_test_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
 
+   
+        (* ignore (L.build_ret_void is_pressed_builder);  *)
         ignore (L.build_ret_void event_builder); (*need it...not sure why*)
         ignore (L.build_ret_void some_builder); (*???*)
-        (* print_test_func new_builder; (*test*) *)
-        (* L.const_int i32_t 0 dummy return value *)
-        builder (*which builder*)
+    
+
+        L.builder_at_end context merge_bb (*which builder*)
         
   in
 
@@ -440,6 +460,12 @@ in
 
     (* ex: player_element *)
     let elem_name = (element.A.ename ^ "_element") in
+    
+    (* added this to test as a function *)
+    let build_elem_func_name = (elem_name ^ "_build") in
+    let build_elem_func_type = L.function_type (L.pointer_type elem_t) [||] in
+    let build_elem_func = L.define_function build_elem_func_name build_elem_func_type the_module in
+    let new_builder = L.builder_at_end context (L.entry_block build_elem_func) in
 
     (*a function that stores the generic element for later reference*)
     (* let store_elem_func_type = L.function_type (L.pointer_type elem_t) [||] in *)
@@ -448,34 +474,56 @@ in
 
     (* Element struct pointer *)
     (* let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") elem_builder in *)
-    let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") builder in
+    let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") new_builder in
  
     (* Element name *)
-    let elem_name_str_ptr = L.build_global_stringptr element.A.ename (elem_name ^ "_id_str_ptr") builder in
-    let elem_name_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_name_ptr") builder in
-    ignore (L.build_store elem_name_str_ptr elem_name_ptr builder);
+    let elem_name_str_ptr = L.build_global_stringptr element.A.ename (elem_name ^ "_id_str_ptr") new_builder in
+    let elem_name_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_name_ptr") new_builder in
+    ignore (L.build_store elem_name_str_ptr elem_name_ptr new_builder);
     
     (* Element size *)
-    let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") builder in
+    let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") new_builder in
     let size_expr = get_var_expr "size" element.A.e_properties in 
-    ignore (L.build_store (expr builder m size_expr) elem_size_ptr builder);
+    ignore (L.build_store (expr new_builder m size_expr) elem_size_ptr new_builder);
+
+
+    (* add the new Element position  TEEESSSSSSSTTTTT*)
+    let pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") new_builder in
+    ignore (L.build_store (expr new_builder m size_expr) pos_ptr new_builder); (*adding the size like a test...*)
 
     (* Element color *)
     let color_expr = get_var_expr "color" element.A.e_properties in
     let color_str = string_of_expr color_expr in
-    let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") builder in
-    let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") builder in
-    ignore (L.build_store elem_color_str_ptr color_ptr builder);
+    let elem_color_str_ptr = L.build_global_stringptr color_str (elem_name ^ "_color_str_ptr") new_builder in
+    let color_ptr = L.build_struct_gep elem_ptr 3 (elem_name ^ "_color_ptr") new_builder in
+    ignore (L.build_store elem_color_str_ptr color_ptr new_builder);
 
 
     (*need a return value for the builder/func*)
     (* ignore (L.build_ret elem_ptr elem_builder); (*not sure about this return val*) *)
     (* let m = StringMap.add elem_name elem_ptr m in (*store the elem ptr in map*) *)
     (* (StringMap.add ("store_" ^ elem_name) store_elem_func m, builder) (*store ptr to elem store func in map and return this map*) *)
+    
+    ignore (L.build_ret elem_ptr new_builder); (*the functions return value*)
+
+    let m = StringMap.add build_elem_func_name build_elem_func m in (*add the function so can call it in "NEW"*)
+    
+
     (StringMap.add (elem_name) elem_ptr m, builder)
   in
   (* List.fold_left build_element_body functions_map elements *)
 (* in  *)
+
+
+(* (*update element func?*)
+let update_element_func map =
+  let name =  "update_element" in
+  let func_t = L.function_type (L.void_type context) [|L.pointer_type elem_t|] in
+  let function = L.define_function name func_t the_module in
+
+  let builder = L.builder_at_end context (L.entry_block function) in
+  let elem_ptr = L.param 0 in 
+ *)
 
 
 

@@ -27,6 +27,32 @@ int refresh = 0;
 
 // SDL_Renderer* renderer = NULL;
 
+int speed = 2;
+
+void moveUp(struct element *e){
+    if(e->position.right + speed < SCREEN_HEIGHT){
+        e->position.right = e->position.right + speed;
+    }
+}
+
+void moveDown(struct element *e){
+    if(e->position.right - e->size.right - speed >=0){
+         e->position.right = e->position.right - speed;
+    }
+}
+
+void moveLeft(struct element *e){
+    if(e->position.left - speed >=0){
+        e->position.left = e->position.left - speed;
+    }
+}
+
+void moveRight(struct element *e){
+    if(e->position.left + e->size.left + speed < SCREEN_WIDTH){
+        e->position.left = e->position.left + speed;
+    }
+}
+
 int doElementsCollide(struct element *e1, struct element *e2){
 
     if(e1->position.left > e2->position.left + e2->size.left || 
@@ -35,15 +61,54 @@ int doElementsCollide(struct element *e1, struct element *e2){
        e1->position.right + e1->size.right < e2->position.right){
         return 1;
     }
-
     return 0;
-
 }
-void (*event_fn)(struct element*);
 
-void testfn(void (*a)(struct element*)){
-    printf("Running test fn");
-    event_fn = a;
+void move(char *name, char *direction){
+
+    struct element *e = NULL;
+    GSList* iterator = NULL;
+        // render_element(&ele);
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        e = (struct element*)iterator->data;
+        printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
+        if(strcmp(e->name, name)!=0){
+            e = NULL;
+        }else{
+            break;
+        }
+    }
+    if(e==NULL){
+        return;
+    }
+
+    iterator = NULL;
+    // render_element(&ele);
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        if(doElementsCollide(e, (struct element*)iterator->data)){
+            return;
+        }
+    }
+
+    refresh = 1;
+    if (strcmp(direction, "UP") == 0){
+        moveUp(e);
+    }else if(strcmp(direction, "DOWN") == 0){
+        moveDown(e);
+    }else if(strcmp(direction, "LEFT") == 0){
+        moveLeft(e);
+    }else if(strcmp(direction, "RIGHT") == 0) {
+        moveRight(e);
+    }
+}
+
+void (*event_fn)();
+
+void addEventfn(void (*a)){
+    printf("Adding event fn");
+    fn_list = g_slist_append(fn_list, a);
 }
 
 void test_print(){
@@ -91,6 +156,7 @@ void init_world(struct world *temp){
     SCREEN_HEIGHT = w->size.right;
 }
 void add_element(struct element *e){
+    printf( "add_element called in C\n" );
     element_list = g_slist_append(element_list, e);
 }
 
@@ -108,21 +174,27 @@ struct element* delete_element(char *name){
     struct element *e = NULL;
     GSList* iterator = NULL;
         // render_element(&ele);
-        for (iterator = element_list; iterator; iterator = iterator->next)
-        {
-            e = (struct element*)iterator->data;
-            printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
-            if(strcmp(e->name, name)!=0){
-                e = NULL;
-            }else{
-                break;
-            }
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        e = (struct element*)iterator->data;
+        printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
+        if(strcmp(e->name, name)!=0){
+            printf("Before test1\n");
+            e = NULL;
+        }else{
+            printf("Before test2\n");
+            break;
         }
+        printf("Before test3\n");
+    }
+    printf("Before test4\n");
     if(e !=NULL){
+        printf("Before test5\n");
         element_list = g_slist_remove(element_list, iterator->data);
         printf("After%d", g_slist_length(element_list));
         printf("%s", e->el_color);
         refresh = 1;
+        printf("Before return e in del. elem.\n");
         return e;
         // free(e->el_color);
         // free(e);
@@ -269,8 +341,12 @@ int world( )
 
             keystate = SDL_GetKeyboardState(NULL);
 
-            if(event_fn != NULL){
-                event_fn((struct element*)element_list->data);
+            iterator = NULL;
+
+            for (iterator = fn_list; iterator; iterator = iterator->next)
+            {
+                void (*temp)() = (void *)iterator->data;
+                temp();
             }
 
             if(refresh){
