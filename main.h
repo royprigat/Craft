@@ -37,6 +37,7 @@ struct element{
     struct tuple size;
     struct tuple position;
     char* el_color;
+    void (*event_fn)(struct element*);
     // int direction;
     // float speed;
 };

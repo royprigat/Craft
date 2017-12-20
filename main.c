@@ -27,6 +27,32 @@ int refresh = 0;
 
 // SDL_Renderer* renderer = NULL;
 
+int speed = 2;
+
+void moveUp(struct element *e){
+    if(e->position.right + e->size.right + speed < SCREEN_HEIGHT){
+        e->position.right = e->position.right + speed;
+    }
+}
+
+void moveDown(struct element *e){
+    if(e->position.right - speed >=0){
+         e->position.right = e->position.right - speed;
+    }
+}
+
+void moveLeft(struct element *e){
+    if(e->position.left - speed >=0){
+        e->position.left = e->position.left - speed;
+    }
+}
+
+void moveRight(struct element *e){
+    if(e->position.left + e->size.left + speed < SCREEN_WIDTH){
+        e->position.left = e->position.left + speed;
+    }
+}
+
 int doElementsCollide(struct element *e1, struct element *e2){
 
     if(e1->position.left > e2->position.left + e2->size.left || 
@@ -35,10 +61,9 @@ int doElementsCollide(struct element *e1, struct element *e2){
        e1->position.right + e1->size.right < e2->position.right){
         return 1;
     }
-
     return 0;
-
 }
+
 void (*event_fn)(struct element*);
 
 void testfn(void (*a)(struct element*)){
