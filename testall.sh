@@ -31,7 +31,7 @@ globalerror=0
 keep=0
 
 Usage() {
-    echo "Usage: testall.sh [options] [.mc files]"
+    echo "Usage: testall.sh [options] [.crf files]"
     echo "-k    Keep intermediate files"
     echo "-h    Print this help"
     exit 1
@@ -77,40 +77,38 @@ RunFail() {
     return 0
 }
 
-Check() {
-    error=0
-    basename=`echo $1 | sed 's/.*\\///
-                             s/.crf//'`
-    reffile=`echo $1 | sed 's/.crf$//'`
-    basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
+# Check() {
+#     error=0
+#     basename=`echo $1 | sed 's/.*\\///
+#                              s/.crf//'`
+#     reffile=`echo $1 | sed 's/.crf$//'`
+#     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
-    echo -n "$basename..."
+#     echo -n "$basename..."
 
-    echo 1>&2
-    echo "###### Testing $basename" 1>&2
+#     echo 1>&2
+#     echo "###### Testing $basename" 1>&2
 
-    generatedfiles=""
+#     generatedfiles=""
 
-    generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
-    Run "$MICROC" "$1" ">" "${basename}.ll" &&
-    Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
-    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "printbig.o" &&
-    Run "./${basename}.exe" > "${basename}.out" &&
-    Compare ${basename}.out ${reffile}.out ${basename}.diff
+#     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
+#     Run "$CRAFT" "$1" ">" "${basename}.ll" &&
+#     Run "./${basename}.exe" > "${basename}.out" &&
+#     Compare ${basename}.out ${reffile}.out ${basename}.diff
 
-    # Report the status and clean up the generated files
+#     # Report the status and clean up the generated files
 
-    if [ $error -eq 0 ] ; then
-	if [ $keep -eq 0 ] ; then
-	    rm -f $generatedfiles
-	fi
-	echo "OK"
-	echo "###### SUCCESS" 1>&2
-    else
-	echo "###### FAILED" 1>&2
-	globalerror=$error
-    fi
-}
+#     if [ $error -eq 0 ] ; then
+# 	if [ $keep -eq 0 ] ; then
+# 	    rm -f $generatedfiles
+# 	fi
+# 	echo "OK"
+# 	echo "###### SUCCESS" 1>&2
+#     else
+# 	echo "###### FAILED" 1>&2
+# 	globalerror=$error
+#     fi
+# }
 
 CheckFail() {
     error=0
@@ -127,14 +125,14 @@ CheckFail() {
     generatedfiles=""
 
     generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
-    RunFail "$MICROC" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
-    Compare ${basename}.err ${reffile}.err ${basename}.diff
+    RunFail "$CRAFT" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
+    # Compare ${basename}.err ${reffile}.err ${basename}.diff
 
     # Report the status and clean up the generated files
 
     if [ $error -eq 0 ] ; then
 	if [ $keep -eq 0 ] ; then
-	    rm -f $generatedfiles
+	    #rm -f $generatedfiles
 	fi
 	echo "OK"
 	echo "###### SUCCESS" 1>&2
@@ -165,18 +163,15 @@ LLIFail() {
 
 which "$LLI" >> $globallog || LLIFail
 
-if [ ! -f printbig.o ]
-then
-    echo "Could not find printbig.o"
-    echo "Try \"make printbig.o\""
-    exit 1
-fi
+
 
 if [ $# -ge 1 ]
 then
     files=$@
 else
-    files="tests/test-*.mc tests/fail-*.crf"
+    #files="tests/test-*.crf tests/fail-*.crf"
+    files="test_suite/fail-*.crf"
+
 fi
 
 for file in $files

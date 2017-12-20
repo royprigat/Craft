@@ -257,12 +257,12 @@ let translate (globals, funcs, events, elements, world) =
           )
         | _ -> L.const_int i32_t 0  
       )
-      | A.Call (_, _) -> L.const_int i32_t 0 (*to stop warning*)
-      | A.CAccess (_,_) -> L.const_int i32_t 0 (*to stop warning*)
-    
-
-  
-
+    | A.CAccess (_,_) -> L.const_int i32_t 0 (*to stop warning*)
+    | A.Call (f, act) ->
+      print_string("expr_Call\n");
+      let func = StringMap.find f map in
+      let actuals = List.rev (List.map (expr builder map) (List.rev act)) in
+      L.build_call func (Array.of_list actuals) f builder
 
   in
  
@@ -279,6 +279,7 @@ let translate (globals, funcs, events, elements, world) =
   let rec stmt builder main_func map = function
         A.Block sl -> List.fold_left (fun builder s -> stmt builder main_func map s) builder sl
       | A.Expr e -> print_string("test12"); ignore (expr builder map e); builder
+      | A.Return e -> ignore(L.build_ret (expr builder map e) builder); builder
       | A.New elem -> 
         let (e_typ, _, e_pos) = elem in
 
@@ -336,7 +337,6 @@ let translate (globals, funcs, events, elements, world) =
         ignore(L.build_call move_func [|elem_name_str_ptr;cond_str_ptr|] "" is_pressed_builder);
 
         (* ignore(stmt is_pressed_builder map first_stmt); *)
-
         (*two big issues. pos is not added here, it's done in NEW. *)
         (* biggest problem is i do not access an the latest updated values just rerendeing initial pos and trying to update that.. *)
         (* ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
@@ -401,8 +401,6 @@ let translate (globals, funcs, events, elements, world) =
   in
 
 
-
-
   (* Declare each global variable; remember its value in a map *)
   let global_vars_map =
     let global_var m (_, n, e) =
@@ -437,49 +435,36 @@ let functions_map =
           StringMap.add n local map 
         in
 
-        let add_local map (t,n,_) =
-          (* let e' = get_var_decl_value e in  *)
+        let add_local map (t,n,e) =
+          let e' = get_var_decl_value e in
           let local_var = L.build_alloca (ltype_of_typ t) n func_builder in
+          ignore(L.build_store e' local_var func_builder);
           StringMap.add n local_var map 
         in
 
-        let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+        let formals = List.fold_left2 add_formal m fdecl.A.formals
           (Array.to_list (L.params the_function)) in
         List.fold_left add_local formals fdecl.A.locals
       in
-     map(* build_function_body returns the filled map *)
+    map(* build_function_body returns the filled map *)
   in
   List.fold_left build_function_body function_decls_map funcs
 in
 
-(* let events_map = 
-  let build_event_body m event = 
-    let the_event = StringMap.find (event.A.evname ^ "_event") events_helper_map in
-    let event_name = event.A.evname in
-    StringMap.add (event.A.evname ^ "_event") the_event m 
-  in
-  List.fold_left build_event_body functions_map events
-in
- *)
 
 
-(* let elements_map =  *)
+  (* let elements_map =  *)
   let build_element_body (m, builder) element =
     (* let the_element = StringMap.find (element.A.ename ^ "_element") elements_helper_map in *)
 
     (* ex: player_element *)
     let elem_name = (element.A.ename ^ "_element") in
-    
-    (* added this to test as a function *)
+
+    (* function used by new keyword to create element and add to world *)
     let build_elem_func_name = (elem_name ^ "_build") in
     let build_elem_func_type = L.function_type (L.pointer_type elem_t) [||] in
     let build_elem_func = L.define_function build_elem_func_name build_elem_func_type the_module in
     let new_builder = L.builder_at_end context (L.entry_block build_elem_func) in
-
-    (*a function that stores the generic element for later reference*)
-    (* let store_elem_func_type = L.function_type (L.pointer_type elem_t) [||] in *)
-    (* let store_elem_func = L.define_function ("store_" ^ elem_name) store_elem_func_type the_module in *)
-    (* let elem_builder = L.builder_at_end context (L.entry_block store_elem_func) in *)
 
     (* Element struct pointer *)
     (* let elem_ptr = L.build_malloc elem_t (elem_name ^ "_ptr") elem_builder in *)
@@ -489,16 +474,11 @@ in
     let elem_name_str_ptr = L.build_global_stringptr element.A.ename (elem_name ^ "_id_str_ptr") new_builder in
     let elem_name_ptr = L.build_struct_gep elem_ptr 0 (elem_name ^ "_name_ptr") new_builder in
     ignore (L.build_store elem_name_str_ptr elem_name_ptr new_builder);
-    
+
     (* Element size *)
     let elem_size_ptr = L.build_struct_gep elem_ptr 1 (elem_name ^ "_size_ptr") new_builder in
     let size_expr = get_var_expr "size" element.A.e_properties in 
     ignore (L.build_store (expr new_builder m size_expr) elem_size_ptr new_builder);
-
-
-    (* add the new Element position  TEEESSSSSSSTTTTT*)
-    (* let pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") new_builder in *)
-    (* ignore (L.build_store (expr new_builder m size_expr) pos_ptr new_builder); (*adding the size like a test...*) *)
 
     (* Element color *)
     let color_expr = get_var_expr "color" element.A.e_properties in
@@ -517,26 +497,14 @@ in
     let speed_expr = get_var_expr "speed" element.A.e_properties in 
     ignore (L.build_store (expr new_builder m speed_expr) elem_speed_ptr new_builder);
 
-    
+
     ignore (L.build_ret elem_ptr new_builder); (*the functions return value*)
 
     let m = StringMap.add build_elem_func_name build_elem_func m in (*add the function so can call it in "NEW"*)
-    
+
 
     (StringMap.add (elem_name) elem_ptr m, builder)
   in
-  (* List.fold_left build_element_body functions_map elements *)
-(* in  *)
-
-
-
-
-
-
-
-
-
-
 
 
  
@@ -590,16 +558,10 @@ in
 
   let (main_map, main_func_builder) = List.fold_left (fun (m,b) e -> build_element_body (m, b) e) (functions_map, main_func_builder) elements in
 
-
-  (* let world_ptr = world_start_func world elements_map main_func_builder  in  *)
   let (world_ptr, main_map, main_func_builder) = world_start_func world main_map main_func main_func_builder in
 
-
-  
   ignore (L.build_call init_world_func [|world_ptr|] "" main_func_builder);
   ignore (L.build_call world_func [||] "" main_func_builder);
-  
-  (* ignore (L.build_call start_render_func [||] "" main_func_builder);  *)
   ignore (L.build_ret (L.const_int i32_t 0) main_func_builder);
  
 
