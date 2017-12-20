@@ -1,7 +1,7 @@
 element player {
     size = (5,50);
     color = "4268f4";
-    size = (30,3);
+    size = (30,3); # fail on duplicate sizes in element
 }
 
 world {

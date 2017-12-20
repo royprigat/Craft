@@ -39,6 +39,7 @@ let check (globals, funcs, events, elements, world) =
     | Void -> "void"
     | Pair -> "pair"
     | Color -> "color"
+    | String -> "string"
   in
 
   let rec string_of_expr = function
@@ -56,9 +57,9 @@ let check (globals, funcs, events, elements, world) =
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
   | Call(f, el) ->
     f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  (* | PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ string_of_expr e
+  | PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ e
   | CAccess(s1,s2) -> s1 ^ "." ^ s2
-  | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")" *)
+  | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
   | Noexpr -> ""
 
   in
@@ -102,7 +103,7 @@ let check (globals, funcs, events, elements, world) =
       ILiteral _ -> Int
       | BLiteral _ -> Bool
       | FLiteral _ -> Float
-      | SLiteral s -> type_of_identifier s m
+      | SLiteral s -> Color
       | Id s -> type_of_identifier s m
       | Binop(e1, op, e2) as e -> let t1 = expr m e1 and t2 = expr m e2 in
        (match op with
@@ -116,8 +117,8 @@ let check (globals, funcs, events, elements, world) =
          | Less | Leq | Greater | Geq when t1 = Float && t2 = Int -> Bool
          | Less | Leq | Greater | Geq when t1 = Int && t2 = Float -> Bool
          | And | Or when t1 = Bool && t2 = Bool -> Bool
-         | _ -> raise (E.IllegalBinOp(string_of_typ t1 ^ " ", string_of_op op ^ " ",
-         string_of_typ t2 ^ " in ", string_of_expr e))
+         | _ -> raise (E.IllegalBinOp("<" ^ string_of_typ t1 ^ "> " ^ string_of_op op ^ " <" ^
+         string_of_typ t2 ^ "> in " ^ string_of_expr e))
        )
      | Unop(op, e) as ex -> let t = expr m e in
       (match op with
@@ -129,13 +130,13 @@ let check (globals, funcs, events, elements, world) =
      | Noexpr-> Void
      | Assign(var, e) as ex -> let lt = expr m var
                                 and rt = expr m e in
-        check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
-				     " = " ^ string_of_typ rt ^ " in " ^
+        check_assign lt rt (Failure ("illegal assignment <" ^ string_of_typ lt ^
+				     "> = <" ^ string_of_typ rt ^ "> in " ^
 				     string_of_expr ex))
-     | Cr s -> let c = expr m s in
+     (* | Cr s -> let c = expr m s in
        let c1 = string_of_typ c in
        if c1 = "color" then Color
-       else raise (E.IncorrectColorType("Please enter a 6-digit hex number for color"))
+       else raise (E.IncorrectColorType("Please enter a 6-digit hex number for color")) *)
      | Pr(x,y) -> let x1 = expr m x and y1 = expr m y in
        if (x1 = Int && y1 = Int) then Pair
        else raise (E.IncorrectPairType("Please enter int inputs for type pair"))
@@ -144,10 +145,25 @@ let check (globals, funcs, events, elements, world) =
                 raise (Failure ("expecting " ^ string_of_int
                 (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
               else
-               *)
+              List.iter2 (fun (ft, _) e -> let et = expr e in
+                ignore(check_assign ft et
+                    (Failure ("illegal actual argument found " ^ string_of_typ et ^
+                    " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e))))
+                fd.formals actuals;
+              fd.typ
+     | PAccess (_, _, _) ->
+     | CAccess (_, _) ->
+     | Keypress _) ->
+     |Call (_, _) ->
+      in*)
 
 
      in
+
+     let checkBools e m = if expr m e != Bool
+            then raise (E.NonBooleanType)
+            else ()
+       in
 
      (* Verify a statement or throw an exception *)
      let rec stmt m = function
@@ -159,6 +175,12 @@ let check (globals, funcs, events, elements, world) =
            | [] -> ()
              in check_block sl
          | Expr e -> ignore (expr m e)
+         | Return _ -> ()
+         |If (c, p1, p2) -> checkBools c m ; stmt m p1; stmt m p2
+         |While (c, s) -> checkBools c m ; stmt m s
+         (* |Condition (_, _) ->
+         |New _ ->
+         |ECall (_, _) ->  *)
 
      in
 
@@ -167,12 +189,12 @@ let check (globals, funcs, events, elements, world) =
   report_duplicate (fun n -> "duplicate formal " ^ n ^ " in " ^ func.fname)
     (List.map bindName func.formals);
 
-  report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
-    (List.map varName func.locals);
-
   let symbol = List.fold_left (fun m (t, n) -> StringMap.add n t m)
   symbol func.formals
   in
+
+  report_duplicate (fun n -> "duplicate local " ^ n ^ " in " ^ func.fname)
+    (List.map varName func.locals);
 
   (* Type of each variable locals *)
   let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
@@ -195,8 +217,8 @@ let check (globals, funcs, events, elements, world) =
     if not(StringMap.mem s m) then raise (E.UndefinedId(s))
     else
     let myMem = StringMap.find s m in
-    if myMem != t then raise (E.IncorrectArgumentType("expected: " ^ string_of_typ t,
-                              "found: " ^ string_of_typ myMem))
+    if myMem != t then raise (E.IncorrectArgumentType("expected: <" ^ string_of_typ t ^
+                              "> found: <" ^ string_of_typ myMem ^ ">"))
   in
 
 
@@ -207,7 +229,7 @@ let addVar m (t, n, e) = StringMap.add n t m in
 let checkVars m = function
 (t,n,e) -> let ty = expr m e in
 if t != ty
-  then raise (E.IncorrectType("expected type: ", string_of_typ t, " not ", string_of_expr e, " of type: ", string_of_typ ty))
+  then raise (E.IncorrectType("expected type:<" ^ string_of_typ t ^ "> not " ^ string_of_expr e ^ " of type: " ^ string_of_typ ty))
 in
 
 (* CHECK ELEMENTS *)

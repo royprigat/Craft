@@ -4,7 +4,7 @@ module StringMap = Map.Make(String)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq | And | Or
 type uop = Neg | Not
-type typ = Int | Float | Bool | Void | Pair | Color
+type typ = Int | Float | Bool | Void | Pair | Color | String
 type bind = typ * string
 
 type expr =
@@ -121,7 +121,7 @@ let rec string_of_expr = function
 | Call(f, el) ->
   f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | PAccess(s1,s2,e) -> s1 ^ "." ^ s2 ^ "." ^ e
-| CAccess(s1,s2) -> s1 ^ "." ^ s2 
+| CAccess(s1,s2) -> s1 ^ "." ^ s2
 | Keypress(e) -> "key_press(" ^ string_of_expr e ^ ")"
 | Noexpr -> ""
 
@@ -136,7 +136,7 @@ let rec string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
   | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"
- 
+
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
 
@@ -153,16 +153,16 @@ let string_of_fdecl fdecl =
   "}\n"
 
 let string_of_events event =
-  "\nevent " ^ event.evname ^ "(" ^ String.concat ""  
+  "\nevent " ^ event.evname ^ "(" ^ String.concat ""
   (List.map string_of_event_formals event.eformals) ^ ") " ^
   "{\n " ^ "condition = " ^ (string_of_expr event.condition) ^ ";\n" ^
   "action {\n" ^ String.concat "" (List.map string_of_stmt event.action) ^
   "\n}\n"
 
-let string_of_elems elem = 
+let string_of_elems elem =
   "\nelement " ^ elem.ename ^ " " ^
   "{\n " ^
-  String.concat " " (List.map string_of_vars elem.e_properties) ^ 
+  String.concat " " (List.map string_of_vars elem.e_properties) ^
   "}\n"
 
 let string_of_world world =
@@ -171,7 +171,7 @@ let string_of_world world =
   String.concat "" (List.map string_of_vars world.init_locals) ^
   String.concat "" (List.map string_of_stmt world.init_body) ^
   "}\n"
-  
+
 let string_of_program (globals, funcs, events, elems, world) =
   String.concat " " (List.map string_of_vars globals) ^
   String.concat " " (List.map string_of_fdecl funcs) ^

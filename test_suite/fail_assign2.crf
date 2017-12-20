@@ -1,11 +1,10 @@
-element player1 {
-    # fail with no color given to element
-    size = (5,50);
-}
+
 
 world {
     properties {
         size = (500,500);
         color = "f4f441";
     }
+    bool a = true; # fail assigning int to bool
+    a = 5;
 }

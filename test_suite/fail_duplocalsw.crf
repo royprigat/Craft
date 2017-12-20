@@ -4,6 +4,6 @@ world {
         color = "f4f441";
     }
     float a = 5.4;
-    float a = 8.5;
-    
+    float a = 8.5; # fail on assigning same named float
+
 }
