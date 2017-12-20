@@ -1,49 +1,76 @@
-event move_up(ball) {
-    condition = key_press("UP");
-    action {
-      player1.pos.x = 400;
-    }
-}
-
-event move_down(ball) {
-    condition = key_press("DOWN");
-    action {
-      player1.pos.x = 400;
-    }
-}
-
-event move_right(ball) {
+event move_right(paddle1) {
     condition = key_press("RIGHT");
     action {
       player1.pos.x = 400;
     }
 }
 
-event move_left(ball) {
+event move_left(paddle1) {
     condition = key_press("LEFT");
     action {
       player1.pos.x = 400;
     }
 }
 
-
-element ball {
-    size = (50,50);
-    color = "f44141";
-    direction = 90;
-    speed = 1;
+event s_move_left(paddle2) {
+    condition = key_press("SLEFT");
+    action {
+      player1.pos.x = 400;
+    }
 }
 
-element paddle_left {
-    size = (15,150);
-    color = "5ff442";
+event s_move_right(paddle2) {
+    condition = key_press("SRIGHT");
+    action {
+      player1.pos.x = 400;
+    }
+}
+
+element player1 {
+    size = (14,14);
+    color = "00ff00";
+    direction = 70;
+    speed = 2;
+}
+
+element wall_left {
+    size = (10,600);
+    color = "00ff00";
     direction = 0;
     speed = 0;
 }
 
-element paddle_right {
-    size = (15,150);
-    color = "4268f4";
+element wall_right {
+    size = (10,600);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+element wall_up {
+    size = (600,15);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+element wall_down {
+    size = (600,10);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+element paddle1{
+    size = (60, 5);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+element paddle2{
+    size = (60, 5);
+    color = "00ff00";
     direction = 0;
     speed = 0;
 }
@@ -51,15 +78,17 @@ element paddle_right {
 world {
     properties {
         size = (600,600);
-        color = "f4f441";
+        color = "000000";
     }
 
-    element ball = new ball(100,100);
-    element paddle_left = new paddle_left(100,400);
-    element paddle_right = new paddle_right(500,400);
-    add_event(move_up);
-    add_event(move_down);
+    element player1 = new player1(100,100);
+    element wall_left = new wall_left(0,0);
+    element wall_right = new wall_right(585,0);
+    element paddle1 = new paddle1(60,560);
+    element paddle2 = new paddle2(60,40);
     add_event(move_right);
     add_event(move_left);
+    add_event(s_move_left);
+    add_event(s_move_right);
 
 }
