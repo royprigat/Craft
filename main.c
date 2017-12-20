@@ -30,13 +30,13 @@ int refresh = 0;
 int speed = 2;
 
 void moveUp(struct element *e){
-    if(e->position.right + e->size.right + speed < SCREEN_HEIGHT){
+    if(e->position.right + speed < SCREEN_HEIGHT){
         e->position.right = e->position.right + speed;
     }
 }
 
 void moveDown(struct element *e){
-    if(e->position.right - speed >=0){
+    if(e->position.right - e->size.right - speed >=0){
          e->position.right = e->position.right - speed;
     }
 }
