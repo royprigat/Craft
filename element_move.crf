@@ -1,24 +1,40 @@
-event move_up1(player1) {
+event move_up(player1) {
     condition = key_press("UP");
     action {
       player1.pos.x = 400;
     }
 }
 
-#event move_up2(player2) {
-#    condition = key_press("UP");
-#    action {
-#      player2.pos.x = 400;
-#    }
-#}
+event move_down(player1) {
+    condition = key_press("DOWN");
+    action {
+      player1.pos.x = 400;
+    }
+}
+
+event move_right(player1) {
+    condition = key_press("RIGHT");
+    action {
+      player1.pos.x = 400;
+    }
+}
+
+event move_left(player1) {
+    condition = key_press("LEFT");
+    action {
+      player1.pos.x = 400;
+    }
+}
+
+
 
 element player1 {
     size = (50,50);
     color = "4268f4";
 }
 
-element player2 {
-    size = (50,50);
+element wall_left {
+    size = (10,400);
     color = "4268f4";
 }
 
@@ -29,7 +45,9 @@ world {
     }
 
     element player1 = new player1(100,100);
-    element player2 = new player2(200,200);
-    add_event(move_up1);
-    #add_event(move_up2);
+    element wall_left = new wall_left(200,400);
+    add_event(move_up);
+    #add_event(move_down);
+    #add_event(move_right);
+    #add_event(move_left);
 }

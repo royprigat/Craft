@@ -86,6 +86,7 @@ let string_of_typ = function
 | Void -> "void"
 | Pair -> "pair"
 | Color -> "color"
+| String -> "string"
 
 let string_of_op = function
   Add -> "+"
@@ -136,6 +137,7 @@ let rec string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
   | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"
+  | Condition (_,_) -> "condition_tbd"
 
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
