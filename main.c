@@ -97,7 +97,7 @@ void move(char *name, char *direction){
 
 void (*event_fn)();
 
-void testfn(void (*a)(){
+void testfn(void (*a)){
     printf("Running test fn");
     event_fn = a;
 }
