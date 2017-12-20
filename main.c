@@ -85,12 +85,12 @@ void move(char *name, char *direction){
 
     iterator = NULL;
     // render_element(&ele);
-    for (iterator = element_list; iterator; iterator = iterator->next)
-    {
-        if(doElementsCollide(e, (struct element*)iterator->data)){
-            return;
-        }
-    }
+    // for (iterator = element_list; iterator; iterator = iterator->next)
+    // {
+    //     if(doElementsCollide(e, (struct element*)iterator->data)){
+    //         return;
+    //     }
+    // }
 
     refresh = 1;
     if (strcmp(direction, "UP") == 0){
@@ -120,7 +120,7 @@ void startRender(){
 }
 int isPressed(char *key){
     int keyId;
-    printf("%s\n",key );
+    // printf("%s\n",key );
 
     if (strcmp(key, "UP") == 0){
         keyId = 82;
@@ -346,6 +346,7 @@ int world( )
             for (iterator = fn_list; iterator; iterator = iterator->next)
             {
                 void (*temp)() = (void *)iterator->data;
+                printf("%s", "Entering ITERATOR");
                 temp();
             }
 
