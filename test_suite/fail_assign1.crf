@@ -1,8 +1,0 @@
-
-world {
-    properties {
-        size = (500,500);
-        color = "f4f441";
-    }
-    int a = true; # fail assigning bool to int
-}

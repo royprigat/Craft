@@ -1,8 +1,0 @@
-
-world {
-    properties {
-        size = (500,500);
-        color = "f4f441";
-    }
-    int a = 6 + (5,5); # fail with binary operator on different types
-}

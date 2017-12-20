@@ -1,6 +1,0 @@
-world {
-    properties {
-        # fail with no size given
-        color = "1a79e5";
-    }
-}
