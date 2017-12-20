@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include  <sys/types.h>
+#include <math.h>
+
 bool shouldStart = true;
 
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
@@ -28,6 +30,13 @@ int refresh = 0;
 // SDL_Renderer* renderer = NULL;
 
 int speed = 2;
+
+void moveSpeed(struct element *e){
+
+    e->position.left = e->position.left + round(e->speed*cos(e->direction));
+    e->position.right = e->position.right + round(e->speed*sin(e->direction));
+    refresh = 1;
+}
 
 void moveUp(struct element *e){
     if(e->position.right + speed < SCREEN_HEIGHT){
@@ -334,6 +343,7 @@ int world( )
             // render_element(&ele);
             for (iterator = element_list; iterator; iterator = iterator->next)
             {
+                moveSpeed((struct element*)iterator->data);
                 render_element((struct element*)iterator->data);
             }
         
