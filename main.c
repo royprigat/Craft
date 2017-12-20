@@ -33,8 +33,9 @@ int speed = 2;
 
 void moveSpeed(struct element *e){
 
-    e->position.left = e->position.left + round(e->speed*cos(e->direction));
-    e->position.right = e->position.right + round(e->speed*sin(e->direction));
+    float radians = 2*M_PI * (e->direction/ 360);
+    e->position.left = e->position.left + round(e->speed*cos(radians));
+    e->position.right = e->position.right + round(e->speed*sin(radians));
     refresh = 1;
 }
 
