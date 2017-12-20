@@ -275,7 +275,7 @@ let translate (globals, funcs, events, elements, world) =
       )
       | A.Call (_, _) -> L.const_int i32_t 0 (*to stop warning*)
       | A.CAccess (_,_) -> L.const_int i32_t 0 (*to stop warning*)
-      (* | _ -> L.const_int i32_t 0  *)
+    
 
   
 
@@ -307,26 +307,6 @@ let translate (globals, funcs, events, elements, world) =
         let pos_ptr = L.build_struct_gep elem_ptr 2 (elem_name ^ "_pos_ptr") builder in
         ignore (L.build_store (expr builder map e_pos) pos_ptr builder); 
 
-        (*
-        (* let elem_ptr = StringMap.find elem_name map in *)
-        (*new...*)
-        let event = StringMap.find (event_name ^ "_event") events_helper_map in
-        let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
-        let first_stmt = List.hd event.A.action in
-
-        let event_func_type = L.function_type (L.void_type context) [|L.pointer_type elem_t|] in
-        let event_func = L.define_function "event_func" event_func_type the_module in
-        let event_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
-
-        let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
-        let elem_name_str_ptr = L.build_global_stringptr first_elem (first_elem ^ "_str_ptr") event_builder in
-
-
-
-
-
-        *)
-        (*old...*)
         (* Call add_element function *)
         ignore (L.build_call add_e [|elem_ptr|] "" builder);
         builder
@@ -334,8 +314,6 @@ let translate (globals, funcs, events, elements, world) =
       | A.ECall ("add_event", event_name) -> 
         print_string ("start_e_call\n");
         
-
-
         let event = StringMap.find (event_name ^ "_event") events_helper_map in
         
         let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
@@ -357,12 +335,10 @@ let translate (globals, funcs, events, elements, world) =
         (* let str_ptr = L.build_alloca str_t "test_str_ptr" new_builder in 
          *)
        
-
-       (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
+        (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
         let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
         let elem_name_str_ptr = L.build_global_stringptr first_elem (first_elem ^ "_str_ptr") event_builder in
-
-        
+  
         (*call the c function and get a yes or no*)
         let return_val = L.build_call is_key_pressed_func [|cond_str_ptr|] "" event_builder in (*stored in new basic block*)
    
@@ -375,43 +351,31 @@ let translate (globals, funcs, events, elements, world) =
         (* let elem_ptr = L.build_call delete_elem_func [|elem_name_str_ptr|] "" is_pressed_builder in *)
         ignore(L.build_call move_func [|elem_name_str_ptr;cond_str_ptr|] "" is_pressed_builder);
 
-
         (* ignore(stmt is_pressed_builder map first_stmt); *)
 
         (*two big issues. pos is not added here, it's done in NEW. *)
         (* biggest problem is i do not access an the latest updated values just rerendeing initial pos and trying to update that.. *)
         (* ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
-
-       
+      
         ignore (L.build_br merge_bb is_pressed_builder);
-
 
         let compare_instruction = L.build_icmp L.Icmp.Eq return_val (L.const_int i32_t 1) ("key_pressed_"^condition) event_builder in
         ignore(L.build_cond_br compare_instruction is_pressed_bb merge_bb event_builder);
 
-   
         ignore (L.build_call c_print_func [||] "" event_builder); (*stored in new basic block*)
-         ignore (L.build_ret_void event_builder); (*need it...not sure why*)
+        ignore (L.build_ret_void event_builder); (*need it...not sure why*)
       
-
         let some_builder = L.builder_at_end context merge_bb in
         ignore (L.build_ret_void some_builder); (*???*)
-
-      
 
         ignore (L.build_call add_event_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
         print_string ("end_e_call\n");
 
-   
-        (* ignore (L.build_ret_void is_pressed_builder);  *)
-       
-        
-  
-    
-      
-       (*  L.builder_at_end context merge_bb *) (*which builder*)
-       (* some_builder (*not using this new is seen... *)*)
-       builder
+        (* ignore (L.build_ret_void is_pressed_builder);  *)        
+        (*  L.builder_at_end context merge_bb *) (*which builder*)
+        (* some_builder (*not using this new is seen... *)*)
+        builder
+
     | A.ECall (_,_) -> builder
     | A.Return _ -> builder
     | A.Condition (_,_) -> builder

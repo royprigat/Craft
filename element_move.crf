@@ -27,7 +27,6 @@ event move_left(player1) {
 }
 
 
-
 element player1 {
     size = (50,50);
     color = "4268f4";
@@ -47,7 +46,7 @@ world {
     element player1 = new player1(100,100);
     element wall_left = new wall_left(200,400);
     add_event(move_up);
-    #add_event(move_down);
-    #add_event(move_right);
-    #add_event(move_left);
+    add_event(move_down);
+    add_event(move_right);
+    add_event(move_left);
 }

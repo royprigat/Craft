@@ -139,7 +139,7 @@ let rec string_of_stmt = function
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
   | Condition(st1, st2) -> string_of_stmt st1 ^ string_of_stmt st2
   | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"
-  | Condition (_,_) -> "condition_tbd"
+  | _ -> "..."
 
 let string_of_vars = function
   (t,s,e) -> string_of_typ t ^ " " ^ s ^ " = " ^ string_of_expr e ^ ";\n"
