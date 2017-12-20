@@ -40,8 +40,8 @@ struct element{
     struct tuple position;
     char* el_color;
     // void (*event_fn)(struct element*);
-    // int direction;
-    // float speed;
+    int direction;
+    int speed;
 };
 
 struct world{
