@@ -64,6 +64,35 @@ int doElementsCollide(struct element *e1, struct element *e2){
     return 0;
 }
 
+void move(char *name, char *direction){
+
+    struct element *e = NULL;
+    GSList* iterator = NULL;
+        // render_element(&ele);
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        e = (struct element*)iterator->data;
+        printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
+        if(strcmp(e->name, name)!=0){
+            e = NULL;
+        }else{
+            break;
+        }
+    }
+    if(e==NULL){
+        return;
+    }
+    if (strcmp(direction, "UP") == 0){
+        moveUp(e);
+    }else if(strcmp(direction, "DOWN") == 0){
+        moveDown(e);
+    }else if(strcmp(direction, "LEFT") == 0){
+        moveLeft(e);
+    }else if(strcmp(direction, "RIGHT") == 0) {
+        moveRight(e);
+    }
+}
+
 void (*event_fn)(struct element*);
 
 void testfn(void (*a)(struct element*)){
@@ -134,20 +163,20 @@ struct element* delete_element(char *name){
     struct element *e = NULL;
     GSList* iterator = NULL;
         // render_element(&ele);
-        for (iterator = element_list; iterator; iterator = iterator->next)
-        {
-            e = (struct element*)iterator->data;
-            printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
-            if(strcmp(e->name, name)!=0){
-                printf("Before test1\n");
-                e = NULL;
-            }else{
-                printf("Before test2\n");
-                break;
-            }
-            printf("Before test3\n");
+    for (iterator = element_list; iterator; iterator = iterator->next)
+    {
+        e = (struct element*)iterator->data;
+        printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
+        if(strcmp(e->name, name)!=0){
+            printf("Before test1\n");
+            e = NULL;
+        }else{
+            printf("Before test2\n");
+            break;
         }
-        printf("Before test4\n");
+        printf("Before test3\n");
+    }
+    printf("Before test4\n");
     if(e !=NULL){
         printf("Before test5\n");
         element_list = g_slist_remove(element_list, iterator->data);
