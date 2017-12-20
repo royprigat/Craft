@@ -82,6 +82,7 @@ void move(char *name, char *direction){
     if(e==NULL){
         return;
     }
+    refresh = 1;
     if (strcmp(direction, "UP") == 0){
         moveUp(e);
     }else if(strcmp(direction, "DOWN") == 0){
