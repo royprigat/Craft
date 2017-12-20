@@ -1,11 +1,29 @@
+element square {
+    size = (50,50);
+    color = "aaaaaa";
+}
+
+element ball {
+    size = (50,50);
+    color = "ffffff";
+}
+
 world {
     properties {
-        size = (500,200);
+        size = (500,500);
         color = "42f4eb";
     }
-    int x = 10;
-    while (x<20){
-    	x + 1;
+    
+    int x = 200;
+    while (x < 301) {
+    	
+    	if (x == 200){
+    		element square = new square(x,x);
+    	} else {
+    		element ball = new ball(x,x);
+    	}
+    	x = x + 100;
+
     }
 
 }
