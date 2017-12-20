@@ -188,6 +188,7 @@ let check (globals, funcs, _, elements, world) =
          | Return _ -> ()
          | If (c, p1, p2) -> checkBools m c; stmt m p1; stmt m p2
          | While (c, s) -> checkBools m c; stmt m s
+         | For(e1, e2, e3, st1) -> ignore(expr m e1); ignore(expr m e2); ignore(expr m e3); stmt m st1
          | Condition (s1, s2) -> stmt m s1; stmt m s2
          | New (_) -> ()
          | ECall (addev,_) -> if addev = "add_event" then ()
