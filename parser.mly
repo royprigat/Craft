@@ -6,7 +6,7 @@
 %token PLUS MINUS TIMES DIVIDE
 %token ASSIGN EQ NEQ LT LEQ GT GEQ AND OR NOT
 %token PERIOD COLLIDE
-%token IF ELSE WHILE RETURN
+%token IF ELSE WHILE FOR RETURN
 %token INT FLOAT STRING BOOL VOID TRUE FALSE
 %token SIZE DIRECTION COLOR PAIR SPEED POS NEW ACT COND
 %token EVENT DEF PROPS ELEMENT WORLD START
@@ -152,14 +152,19 @@ stmt_list:          { [] }
   | stmt_list stmt	{ $2 :: $1 }
 
 stmt:
-	  expr SEMI 									                  { Expr $1 }
-  | element_decl                                  { $1 }
-	| RETURN expr SEMI 							                { Return $2 }
-	| LBRACE stmt_list RBRACE 					            { Block(List.rev $2) }
-	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	    { If($3, $5, Block([])) }
-	| IF LPAREN expr RPAREN stmt ELSE stmt 		      { If($3, $5, $7) }
-	| WHILE LPAREN expr RPAREN stmt 			          { While($3, $5)}
-  | ID LPAREN ID RPAREN SEMI                          { ECall($1, $3) }
+	  expr SEMI 									                            { Expr $1 }
+  | element_decl                                            { $1 }
+	| RETURN expr SEMI 							                          { Return $2 }
+	| LBRACE stmt_list RBRACE 					                      { Block(List.rev $2) }
+	| IF LPAREN expr RPAREN stmt  %prec NOELSE 	              { If($3, $5, Block([])) }
+	| IF LPAREN expr RPAREN stmt ELSE stmt 		                { If($3, $5, $7) }
+	| WHILE LPAREN expr RPAREN stmt 			                    { While($3, $5)}
+  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9) }
+  | ID LPAREN ID RPAREN SEMI                                { ECall($1, $3) }
+
+expr_opt:
+  { Noexpr }
+  | expr          { $1 }
 
 /* Expressions */
 expr:

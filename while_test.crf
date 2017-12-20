@@ -1,0 +1,41 @@
+element square {
+    size = (50,50);
+    color = "aaaaaa";
+}
+
+element ball {
+    size = (50,50);
+    color = "ffffff";
+}
+
+element dot {
+    size = (30,30);
+    color = "bbbbbb";
+}
+
+world {
+    properties {
+        size = (500,500);
+        color = "42f4eb";
+    }
+    
+    int x = 200;
+    int i = 0;
+    while (x < 301) {
+    	
+    	if (x == 200){
+    		element square = new square(x,x);
+    	} else {
+    		element ball = new ball(x,x);
+    	}
+    	x = x + 100;
+
+    }
+
+    
+    for (i = 1 ; i<2 ; i=i+1){
+    	element ball = new ball(100,100);
+
+    }
+
+}

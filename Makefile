@@ -23,6 +23,7 @@ clean :
 	rm -rf testall.log *.diff craft scanner.ml parser.ml parser.mli
 	#rm -rf printbig
 	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.s *.ll *.out *.exe
+	rm -rf ./test_suite/*.o ./test_suite/*.s ./test_suite/*.ll ./test_suite/*.out ./test_suite/*.exe
 
 
 OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx craft.cmx

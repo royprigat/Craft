@@ -33,6 +33,7 @@ type stmt =
   | If of expr * stmt * stmt
   | Condition of stmt * stmt
   | While of expr * stmt
+  | For of expr * expr * expr * stmt
   | New of element_decl
   | ECall of string * string
 
@@ -136,6 +137,9 @@ let rec string_of_stmt = function
   | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | For(e1, e2, e3, s) ->
+      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
+      string_of_expr e3  ^ ") " ^ string_of_stmt s
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
   | Condition(st1, st2) -> string_of_stmt st1 ^ string_of_stmt st2
   | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"

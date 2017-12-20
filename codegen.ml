@@ -78,7 +78,6 @@ let translate (globals, funcs, events, elements, world) =
   let start_render_func = L.declare_function "startRender" start_render_func_type the_module in *)
 
   let add_event_func_type = L.function_type (L.void_type context) [| L.pointer_type (L.function_type (L.void_type context) [||]) |] in
-  (* let c_test_func_type = L.function_type (L.void_type context) [||] in *)
   let add_event_func = L.declare_function "addEventfn" add_event_func_type the_module in
 
   let c_print_func_type = L.function_type (L.void_type context) [||] in
@@ -134,25 +133,9 @@ let translate (globals, funcs, events, elements, world) =
     | A.Id s -> L.build_load (StringMap.find s map) s builder
 
     | A.Binop (e1, op, e2) ->
-      print_string ("test11");
+      print_string ("test_binop");
       let e1' = expr builder map e1
       and e2' = expr builder map e2 in
-      if (L.type_of e1' = flt_t || L.type_of e2' = flt_t) 
-      then
-      (match op with
-        A.Add     -> L.build_fadd
-      | A.Sub     -> L.build_fsub
-      | A.Mult    -> L.build_fmul
-      | A.Div     -> L.build_fdiv
-      | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-      | A.Neq     -> L.build_fcmp L.Fcmp.One
-      | A.Less    -> L.build_fcmp L.Fcmp.Olt
-      | A.Leq     -> L.build_fcmp L.Fcmp.Ole
-      | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-      | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-      | _         -> raise (E.InvalidBinaryOperation) 
-      ) e1' e2' "tmp" builder 
-      else
       (match op with
         A.Add     -> L.build_add
       | A.Sub     -> L.build_sub
@@ -193,12 +176,13 @@ let translate (globals, funcs, events, elements, world) =
       L.build_load pr_ptr "p" builder
 
     | A.Assign (e1, e2) ->
-      print_string ("test9");
+      print_string ("test_assign");
       let e' = expr builder map e2 in (* should bribg back calculated value *)
       (* let e' = L.const_int i32_t 25 in *)
       print_string ("test10");
 
       (match e1 with
+        |A.Id (s) -> L.build_store e' (StringMap.find s map) builder
         |A.PAccess (s1,s2,s3) ->
           (* let x_or_y = string_of_expr e in *)
           (* let x_or_y = "y" in *)
@@ -281,19 +265,19 @@ let translate (globals, funcs, events, elements, world) =
 
 
   in
-(* 
+ 
     (* Invoke "f builder" if the current block doesn't already have a terminal (e.g., a branch). *)
     let add_terminal builder f =
       match L.block_terminator (L.insertion_block builder) with
         Some _ -> ()
       | None -> ignore (f builder) 
     in
- *)
+
  
   
   (* Build the code for the given statement; return the builder for the statement's successor *)
-  let rec stmt builder map = function
-        A.Block sl -> List.fold_left (fun builder s -> stmt builder map s) builder sl
+  let rec stmt builder main_func map = function
+        A.Block sl -> List.fold_left (fun builder s -> stmt builder main_func map s) builder sl
       | A.Expr e -> print_string("test12"); ignore (expr builder map e); builder
       | A.New elem -> 
         let (e_typ, _, e_pos) = elem in
@@ -379,36 +363,40 @@ let translate (globals, funcs, events, elements, world) =
     | A.ECall (_,_) -> builder
     | A.Return _ -> builder
     | A.Condition (_,_) -> builder
-    | A.If (_, _, _) ->
-       (*  let bool_val = expr builder map predicate in
-        let merge_bb = L.append_block context "merge" the_function in
+    | A.If (predicate, then_stmt, else_stmt) ->
+        let bool_val = expr builder map predicate in
+        let merge_bb = L.append_block context "merge" main_func in
 
-        let then_bb = L.append_block context "then" the_function in
-        add_terminal (stmt (L.builder_at_end context then_bb) map then_stmt)
+        let then_bb = L.append_block context "then" main_func in
+        add_terminal (stmt (L.builder_at_end context then_bb) main_func map then_stmt)
         (L.build_br merge_bb);
 
-        let else_bb = L.append_block context "else" the_function in
-        add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+        let else_bb = L.append_block context "else" main_func in
+        add_terminal (stmt (L.builder_at_end context else_bb) main_func map else_stmt)
         (L.build_br merge_bb);
 
         ignore (L.build_cond_br bool_val then_bb else_bb builder);
-        L.builder_at_end context merge_bb *)
-        builder
-    | A.While (_, _) ->
-      (*   let pred_bb = L.append_block context "while" the_function in
+        L.builder_at_end context merge_bb
+      
+    | A.While (predicate, body) ->
+        print_string("stmt_while");
+        let pred_bb = L.append_block context "while" main_func in
         ignore (L.build_br pred_bb builder);
 
-        let body_bb = L.append_block context "while_body" the_function in
-        add_terminal (stmt (L.builder_at_end context body_bb) map body)
+        let body_bb = L.append_block context "while_body" main_func in
+        add_terminal (stmt (L.builder_at_end context body_bb) main_func map body)
         (L.build_br pred_bb);
 
         let pred_builder = L.builder_at_end context pred_bb in
         let bool_val = expr pred_builder map predicate in
 
-        let merge_bb = L.append_block context "merge" the_function in
+        let merge_bb = L.append_block context "merge" main_func in
         ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
-        L.builder_at_end context merge_bb *)
-        builder
+        L.builder_at_end context merge_bb
+
+    | A.For (e1, e2, e3, body) -> stmt builder main_func map
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
+
     
   in
 
@@ -553,7 +541,7 @@ in
 
  
   (* CREATE WORLD *)
-  let world_start_func world map builder =
+  let world_start_func world map main_func builder =
   
     let world_ptr = L.build_malloc world_t ("world_ptr") builder in
 
@@ -570,12 +558,27 @@ in
     let color_ptr = L.build_struct_gep world_ptr 1 "color_ptr" builder in
     ignore (L.build_store world_color_str_ptr color_ptr builder);
 
+    (* World locals*)
+    let map = 
+      let add_local map (t,s,e) =
+        print_string("test_add_local");
+        let e' = expr builder map e in
+        let local_var = L.build_alloca (ltype_of_typ t) s builder in
+            ignore (L.build_store e' local_var builder);
+            StringMap.add s local_var map 
+      in
+      List.fold_left add_local map world.A.init_locals
+    in
+
+
+
     (* World statements *)
     let world_stmt_list = world.A.init_body in
-    ignore(List.fold_left (fun b s -> stmt b map s) builder world_stmt_list);
+    (* ignore(List.fold_left (fun b s -> stmt b main_func map s) builder world_stmt_list); *)
+    let builder = List.fold_left (fun b s -> stmt b main_func map s) builder world_stmt_list in
 
     (* ignore (L.build_ret builder); *)
-    world_ptr
+    (world_ptr, map, builder)
   in
 
 
@@ -589,7 +592,7 @@ in
 
 
   (* let world_ptr = world_start_func world elements_map main_func_builder  in  *)
-  let world_ptr = world_start_func world main_map main_func_builder in
+  let (world_ptr, main_map, main_func_builder) = world_start_func world main_map main_func main_func_builder in
 
 
   
