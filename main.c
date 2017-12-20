@@ -91,6 +91,7 @@ void init_world(struct world *temp){
     SCREEN_HEIGHT = w->size.right;
 }
 void add_element(struct element *e){
+    printf( "add_element called in C\n" );
     element_list = g_slist_append(element_list, e);
 }
 
@@ -113,16 +114,22 @@ struct element* delete_element(char *name){
             e = (struct element*)iterator->data;
             printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
             if(strcmp(e->name, name)!=0){
+                printf("Before test1\n");
                 e = NULL;
             }else{
+                printf("Before test2\n");
                 break;
             }
+            printf("Before test3\n");
         }
+        printf("Before test4\n");
     if(e !=NULL){
+        printf("Before test5\n");
         element_list = g_slist_remove(element_list, iterator->data);
         printf("After%d", g_slist_length(element_list));
         printf("%s", e->el_color);
         refresh = 1;
+        printf("Before return e in del. elem.\n");
         return e;
         // free(e->el_color);
         // free(e);
