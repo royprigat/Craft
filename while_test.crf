@@ -1,0 +1,11 @@
+world {
+    properties {
+        size = (500,200);
+        color = "42f4eb";
+    }
+    int x = 10;
+    while (x<20){
+    	x + 1;
+    }
+
+}
