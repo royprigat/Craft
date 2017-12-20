@@ -8,6 +8,8 @@ const Uint8 *keystate = NULL;
 
 GSList* element_list;
 
+GSList* fn_list = NULL;
+
 //Starts up SDL and creates window
 bool init();
 
