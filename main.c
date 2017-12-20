@@ -82,6 +82,7 @@ void move(char *name, char *direction){
     if(e==NULL){
         return;
     }
+
     refresh = 1;
     if (strcmp(direction, "UP") == 0){
         moveUp(e);
@@ -94,9 +95,9 @@ void move(char *name, char *direction){
     }
 }
 
-void (*event_fn)(struct element*);
+void (*event_fn)();
 
-void testfn(void (*a)(struct element*)){
+void testfn(void (*a)(){
     printf("Running test fn");
     event_fn = a;
 }
@@ -332,7 +333,7 @@ int world( )
             keystate = SDL_GetKeyboardState(NULL);
 
             if(event_fn != NULL){
-                event_fn((struct element*)element_list->data);
+                event_fn();
             }
 
             if(refresh){
