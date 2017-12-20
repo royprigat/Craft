@@ -1,0 +1,7 @@
+world {
+    properties {
+        size = (1000,1000);
+        color = "1a79e5";
+        size = (5,5); # fail on duplicate sizes in world properties
+    }
+}

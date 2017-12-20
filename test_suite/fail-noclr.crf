@@ -1,0 +1,6 @@
+world {
+    properties {
+        size = (1000,1000);
+        # fail with no color given
+    }
+}

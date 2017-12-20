@@ -1,0 +1,9 @@
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+    float a = 5.4;
+    float a = 8.5; # fail on assigning same named float
+
+}
