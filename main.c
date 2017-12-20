@@ -54,25 +54,25 @@ int doElementsCollide(struct element *e1, struct element *e2){
     }
     if((e1->position.left < e2->position.left + e2->size.left + 3)&&
         (e1->position.left +3 > e2->position.left + e2->size.left)){
-        printf("trip1\n");
+        // printf("trip1\n");
         reflection(e1, 2);
         return 2; 
     }
     if((e1->position.left + e1->size.left + 3 > e2->position.left)&&
         (e1->position.left + e1->size.left < e2->position.left+3)){
-        printf("trip2\n");
+        // printf("trip2\n");
         reflection(e1, 2);
         return 2; 
     }
     if((e1->position.right < e2->position.right + e2->size.right + 3) &&
        (e1->position.right +3 > e2->position.right + e2->size.right)){
-        printf("trip3\n");
+        // printf("trip3\n");
         reflection(e1, 1);
         return 1;
     }
     if((e1->position.right + e1->size.right + 3 > e2->position.right) &&
         (e1->position.right + e1->size.right < e2->position.right + 3)){
-            printf("trip4\n");
+            // printf("trip4\n");
             reflection(e1, 1);
             return 1;
         }
@@ -384,6 +384,7 @@ void close()
     // gHelloWorld = NULL;
 
     //Destroy window
+    printf("Exiting!!");
     SDL_DestroyWindow( gWindow );
     gWindow = NULL;
 
@@ -483,8 +484,8 @@ int world( )
         }
     }
 
-    //Free resources and close SDL
-    // close();
+    // Free resources and close SDL
+    
 
     return 0;
 }
