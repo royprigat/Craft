@@ -32,12 +32,12 @@ int refresh = 0;
 int speed = 2;
 
 void reflection(struct element *e, int axis){
-    printf("reflection axis %d", axis);
-    if(axis == 1){
-        printf("%d %d \n", e->direction, 180 - e->direction);
+    // printf("reflection axis %d", axis);
+    if(axis == 2){
+        // printf("%d %d \n", e->direction, 180 - e->direction);
         e->direction = 180 - e->direction;
     }else{
-        printf("%d %d \n", e->direction, 360 - e->direction);
+        // printf("%d %d \n", e->direction, 360 - e->direction);
         e->direction = 360 - e->direction;
     }
     refresh = 1;
@@ -52,14 +52,31 @@ int doElementsCollide(struct element *e1, struct element *e2){
        e1->position.right + e1->size.right < e2->position.right){
         return 0;
     }
-    if(!(e1->position.left > e2->position.left + e2->size.left || 
-       e1->position.left + e1->size.left < e2->position.left)){
+    if((e1->position.left < e2->position.left + e2->size.left + 3)&&
+        (e1->position.left +3 > e2->position.left + e2->size.left)){
+        printf("trip1\n");
         reflection(e1, 2);
         return 2; 
-    }else{
+    }
+    if((e1->position.left + e1->size.left + 3 > e2->position.left)&&
+        (e1->position.left + e1->size.left < e2->position.left+3)){
+        printf("trip2\n");
+        reflection(e1, 2);
+        return 2; 
+    }
+    if((e1->position.right < e2->position.right + e2->size.right + 3) &&
+       (e1->position.right +3 > e2->position.right + e2->size.right)){
+        printf("trip3\n");
         reflection(e1, 1);
         return 1;
     }
+    if((e1->position.right + e1->size.right + 3 > e2->position.right) &&
+        (e1->position.right + e1->size.right < e2->position.right + 3)){
+            printf("trip4\n");
+            reflection(e1, 1);
+            return 1;
+        }
+    
 }
 
 void moveSpeed(struct element *e){
@@ -72,17 +89,18 @@ void moveSpeed(struct element *e){
     
     for (iterator = element_list; iterator; iterator = iterator->next)
     {
-        if(strcmp(e->name, ((struct element*)iterator->data)->name)==0){
+        struct element *temp = (struct element*)iterator->data;
+        if(strcmp(e->name, temp->name)==0){
             continue;
         }
         // printf("%d  %f\n", e->direction, radians);
-        if(doElementsCollide(e, (struct element*)iterator->data)){
+        if(doElementsCollide(e, temp)){
         // printf("COLLISION\n");
             e->position.left = e->position.left - round(e->speed*cos(radians));
             e->position.right = e->position.right - round(e->speed*sin(radians));
         } 
     
-        if(doElementsCollide(e, (struct element*)iterator->data)){
+        if(doElementsCollide(e, temp)){
         // printf("COLLISION\n");
             e->position.left = e->position.left - round(e->speed*cos(radians));
             e->position.right = e->position.right - round(e->speed*sin(radians));
@@ -189,13 +207,13 @@ void move(char *name, char *direction){
     }
 
     refresh = 1;
-    if (strcmp(direction, "UP") == 0){
+    if (strcmp(direction, "UP") == 0 || strcmp(direction, "SUP") == 0){
         moveUp(e);
-    }else if(strcmp(direction, "DOWN") == 0){
+    }else if(strcmp(direction, "DOWN") == 0 || strcmp(direction, "SDOWN") == 0){
         moveDown(e);
-    }else if(strcmp(direction, "LEFT") == 0){
+    }else if(strcmp(direction, "LEFT") == 0 || strcmp(direction, "SLEFT") == 0){
         moveLeft(e);
-    }else if(strcmp(direction, "RIGHT") == 0) {
+    }else if(strcmp(direction, "RIGHT") == 0 || strcmp(direction, "SRIGHT") == 0) {
         moveRight(e);
     }
 }
@@ -228,6 +246,14 @@ int isPressed(char *key){
          keyId = 79;
     }else if(strcmp(key, "SPACE") == 0){
         keyId = 44;
+    }else if (strcmp(key, "SDOWN") == 0){
+        keyId = 26;
+    }else if(strcmp(key, "SUP") == 0){
+         keyId = 22;
+    }else if(strcmp(key, "SLEFT") == 0){
+         keyId = 4;
+    }else if(strcmp(key, "SRIGHT") == 0) {
+         keyId = 7;
     }
     if(keystate == NULL){
         return 0;
