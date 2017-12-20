@@ -16,3 +16,7 @@ exception UnrecognizedFunction of string
 exception IncorrectColorType of string
 exception IncorrectPairType of string
 exception NonBooleanType
+exception NonAccessibleProp of string
+exception IllegalArgument
+exception WrongKeyPress
+exception IllegalCondition

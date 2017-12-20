@@ -5,7 +5,7 @@ open Ast
 module E = Exceptions
 module StringMap = Map.Make(String)
 
-let check (globals, funcs, events, elements, world) =
+let check (globals, funcs, _, elements, world) =
 
 (* HELPERS *)
 
@@ -21,10 +21,8 @@ let check (globals, funcs, events, elements, world) =
   (* get variable name *)
   let varName = function (_, n, _) -> n in
 
-  (* get variable name *)
+  (* get bind name *)
   let bindName = function (_, n) -> n in
-
-
 
   (* Raise an exception of the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -68,7 +66,7 @@ let check (globals, funcs, events, elements, world) =
   report_duplicate (fun n -> "duplicate global " ^ n) (List.map varName globals);
 
   (* Type of each variable (global or formal *)
-   let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+   let symbol = List.fold_left (fun m (t, n, _) -> StringMap.add n t m)
      StringMap.empty globals
    in
 
@@ -103,7 +101,7 @@ let check (globals, funcs, events, elements, world) =
       ILiteral _ -> Int
       | BLiteral _ -> Bool
       | FLiteral _ -> Float
-      | SLiteral s -> Color
+      | SLiteral _ -> Color
       | Id s -> type_of_identifier s m
       | Binop(e1, op, e2) as e -> let t1 = expr m e1 and t2 = expr m e2 in
        (match op with
@@ -133,34 +131,46 @@ let check (globals, funcs, events, elements, world) =
         check_assign lt rt (Failure ("illegal assignment <" ^ string_of_typ lt ^
 				     "> = <" ^ string_of_typ rt ^ "> in " ^
 				     string_of_expr ex))
-     (* | Cr s -> let c = expr m s in
+     | Cr s -> let c = expr m s in
        let c1 = string_of_typ c in
        if c1 = "color" then Color
-       else raise (E.IncorrectColorType("Please enter a 6-digit hex number for color")) *)
+       else raise (E.IncorrectColorType("Please enter a 6-digit hex number for color"))
      | Pr(x,y) -> let x1 = expr m x and y1 = expr m y in
        if (x1 = Int && y1 = Int) then Pair
        else raise (E.IncorrectPairType("Please enter int inputs for type pair"))
-     (* | Call(fname, actuals) as call -> let fd = function_decl fname in
+     | Call(fname, actuals) as call -> let fd = function_decl fname in
               if List.length actuals != List.length fd.formals then
                 raise (Failure ("expecting " ^ string_of_int
                 (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
               else
-              List.iter2 (fun (ft, _) e -> let et = expr e in
-                ignore(check_assign ft et
-                    (Failure ("illegal actual argument found " ^ string_of_typ et ^
-                    " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e))))
-                fd.formals actuals;
-              fd.typ
-     | PAccess (_, _, _) ->
-     | CAccess (_, _) ->
-     | Keypress _) ->
-     |Call (_, _) ->
-      in*)
+                if (fname="add") then (
+                  let evntName = string_of_expr (List.hd actuals) in
+                  if StringMap.mem evntName m then Int
+                  else raise (E.UndefinedId(evntName)))
+                else
+                let checkSameT t1 t2 = if t1 != t2 then raise (Failure ("Incorrect actual argument type in " ^ string_of_expr call)) in
+                List.iter2 (fun (ft,_) e -> let et = expr m e in checkSameT ft et ) fd.formals actuals;
+                fd.typ
+     | PAccess (p, props, n) ->
+          if not(StringMap.mem p m) then raise (E.UndeclaredId(p))
+          else
+            if not(props = "pos" || props = "size")
+            then raise (E.NonAccessibleProp(props))
+            else
+              if (n = "x" || n = "y") then Int
+              else raise (Failure("Please make sure you are assigning to x or y and that it is a type: <int>"));
 
+     | CAccess (player, prop) ->
+          if (StringMap.mem player m && prop = "color") then type_of_identifier prop m
+          else
+             raise (E.UndeclaredId(player))
+     | Keypress (c) -> let move = string_of_expr c in
+          if not(move = "UP" || move = "DOWN" || move = "LEFT" || move = "RIGHT")
+          then raise (E.WrongKeyPress); String
 
      in
 
-     let checkBools e m = if expr m e != Bool
+     let checkBools m e = if expr m e != Bool
             then raise (E.NonBooleanType)
             else ()
        in
@@ -176,12 +186,11 @@ let check (globals, funcs, events, elements, world) =
              in check_block sl
          | Expr e -> ignore (expr m e)
          | Return _ -> ()
-         |If (c, p1, p2) -> checkBools c m ; stmt m p1; stmt m p2
-         |While (c, s) -> checkBools c m ; stmt m s
-         (* |Condition (_, _) ->
-         |New _ ->
-         |ECall (_, _) ->  *)
-
+         | If (c, p1, p2) -> checkBools m c; stmt m p1; stmt m p2
+         | While (c, s) -> checkBools m c; stmt m s
+         | Condition (s1, s2) -> stmt m s1; stmt m s2
+         | New (_) -> ()
+         | ECall (addev,_) -> if addev = "add_event" then ()
      in
 
   let check_function func =
@@ -197,7 +206,7 @@ let check (globals, funcs, events, elements, world) =
     (List.map varName func.locals);
 
   (* Type of each variable locals *)
-  let symbol = List.fold_left (fun m (t, n, e) -> StringMap.add n t m)
+  let symbol = List.fold_left (fun m (t, n, _) -> StringMap.add n t m)
   symbol func.locals
   in
 
@@ -209,7 +218,7 @@ let check (globals, funcs, events, elements, world) =
 
   (* build a map given a list of members *)
   let memMap members =
-    List.fold_left (fun m (t, n, e) -> StringMap.add n t m) StringMap.empty members
+    List.fold_left (fun m (t, n, _) -> StringMap.add n t m) StringMap.empty members
   in
 
   (* check if a given member type exists *)
@@ -223,17 +232,16 @@ let check (globals, funcs, events, elements, world) =
 
 
   (* add variable to a map *)
-let addVar m (t, n, e) = StringMap.add n t m in
+let addVar m (t, n, _) = StringMap.add n t m in
 
 (* check if types in var_decl match *)
 let checkVars m = function
-(t,n,e) -> let ty = expr m e in
+(t,_,e) -> let ty = expr m e in
 if t != ty
-  then raise (E.IncorrectType("expected type:<" ^ string_of_typ t ^ "> not " ^ string_of_expr e ^ " of type: " ^ string_of_typ ty))
+  then raise (E.IncorrectType("expected type:<" ^ string_of_typ t ^ "> not (" ^ string_of_expr e ^ ") of type: " ^ string_of_typ ty))
 in
 
 (* CHECK ELEMENTS *)
-
 let check_elements el =
   (* check required properties *)
    let elMems = memMap el.e_properties in
@@ -242,6 +250,9 @@ let check_elements el =
 
  report_duplicate (fun n -> "Duplicate variable <" ^ n ^ "> in your element properties")
    (List.map varName el.e_properties);
+
+ let symbol = List.fold_left addVar StringMap.empty el.e_properties in
+   List.iter (checkVars symbol) el.e_properties;
 
 in
 

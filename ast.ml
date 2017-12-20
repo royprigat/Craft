@@ -82,6 +82,7 @@ type program = var_decl list * func_decl list * event list * element list * worl
 let string_of_typ = function
   Int -> "int"
 | Float -> "float"
+| String -> "string"
 | Bool -> "bool"
 | Void -> "void"
 | Pair -> "pair"
@@ -135,6 +136,7 @@ let rec string_of_stmt = function
       string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | New(a,b,c) -> "element " ^ a ^ " = new " ^ b ^ string_of_expr c ^ ";\n"
+  | Condition(st1, st2) -> string_of_stmt st1 ^ string_of_stmt st2
   | ECall(f,evnt) -> f ^ "(" ^ evnt ^ ")"
 
 let string_of_vars = function
