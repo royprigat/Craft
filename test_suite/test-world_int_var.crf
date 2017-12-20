@@ -3,7 +3,5 @@ world {
     size = (100,100);
     color = "ffffff";
   }
-  int x = 5;
-  float a = 3.4;
-  bool t = true;
+  int x = 5; # Local var declaration in world
 }

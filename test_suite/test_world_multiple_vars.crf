@@ -1,0 +1,10 @@
+world {
+  properties {
+    size = (100,100);
+    color = "ffffff";
+  }
+  # Local vars declarations
+  int x = 5; 
+  bool b = true;
+  string s = "Hi";
+}
