@@ -8,5 +8,5 @@ world {
         size = (500,500);
         color = "f4f441";
     }
-    element player = new element(20,20);
+    element player = new player(20,20);
 }

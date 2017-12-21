@@ -1,8 +1,7 @@
 int global_int = 3;
-int global_bool = true;
-int global_float = 3.4;
-int global_color = "aaaaaa";
-int global_pair = (3,3);
+bool global_bool = true;
+float global_float = 3.4;
+
 
 
 world {

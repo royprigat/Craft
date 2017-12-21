@@ -7,6 +7,4 @@ world {
   int x = 5; 
   bool b = true;
   float f = 3.4;
-  color c = "aaaaaa";
-  pair p = (3,3);
 }

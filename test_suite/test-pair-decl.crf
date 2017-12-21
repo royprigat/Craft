@@ -1,7 +1,0 @@
-world {
-  properties {
-    size = (100,100);
-    color = "ffffff";
-  }
-  pair p = (3,3);
-}

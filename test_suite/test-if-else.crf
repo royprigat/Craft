@@ -3,10 +3,10 @@ world {
         size = (500,200);
         color = "f4f441";
     }
-    int x = 2;
-    if (x = 3) {
-        x = 4;
+    bool x = true;
+    if (x) {
+        x = false;
     } else {
-        x = 5;
+        x = false;
     }
 }
