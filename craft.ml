@@ -21,12 +21,11 @@ let _ =
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
-  (* Semant.check ast; *)
+  Semant.check ast;
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
   | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate ast))
   | Compile -> let m = Codegen.translate ast in
-    print_string ("entering compile");
     Llvm_analysis.assert_valid_module m;
     (* print_string (Llvm.string_of_llmodule m) *)
     let arg_index =
@@ -49,7 +48,5 @@ let _ =
 
     let command_1 = "llc " ^ ll_name ^ " > " ^ s_name in
     ignore (Sys.command command_1);
-    (* print_string ("before gcc"); *)
     let command_2 = "gcc -o " ^ exe_name ^ " " ^ s_name ^ " main.o -I /usr/local/include -L/usr/local/lib -lSDL2 `pkg-config --cflags --libs glib-2.0`" in
-    (* print_string ("after gcc"); *)
     ignore (Sys.command command_2);

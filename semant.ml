@@ -143,9 +143,8 @@ let check (globals, funcs, _, elements, world) =
                 raise (Failure ("expecting " ^ string_of_int
                 (List.length fd.formals) ^ " arguments in " ^ string_of_expr call))
               else
-                if (fname="add") then (
                   let evntName = string_of_expr (List.hd actuals) in
-                  if StringMap.mem evntName m then Int
+                  if StringMap.mem evntName function_decls then Int
                   else raise (E.UndefinedId(evntName)))
                 else
                 let checkSameT t1 t2 = if t1 != t2 then raise (Failure ("Incorrect actual argument type in " ^ string_of_expr call)) in
