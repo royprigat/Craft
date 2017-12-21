@@ -6,6 +6,6 @@ world {
         color = "f4f441";
     }
     int i = 3;
-    return i;
+    return i;  # Should not return anything
     float a = 5.9;
 }

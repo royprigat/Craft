@@ -1,0 +1,10 @@
+def int foo(int x) {
+  return x;
+}
+
+world {
+  properties {
+    size = (20,20);
+    color = "ffffff";
+  }
+}
