@@ -1,0 +1,9 @@
+int x = 3;
+int x = 4; # fail on two identical ids
+
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+}

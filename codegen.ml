@@ -251,18 +251,14 @@ let translate (globals, funcs, events, elements, world) =
       | A.ECall ("add_event", event_name) -> 
 
         let event = StringMap.find (event_name ^ "_event") events_helper_map in
-        
-        let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
+        let condition = string_of_expr event.A.condition in (*ex: "UP"*)
 
         let first_elem = List.hd event.A.eformals in (*it's a string. ex player which is now the name*)
 
-        (* assume we have keypress-up for now *)
-        (* let event_func_type = L.function_type (L.void_type context) [||] in *)
         let event_func_type = L.function_type (L.void_type context) [||] in
         let event_func = L.define_function (condition ^ "_event_func") event_func_type the_module in
         let event_builder = L.builder_at_end context (L.entry_block event_func) in (*event_func runs a new basic block. trigggered by fucntion pointer in C*)
        
-        (*  let str_ptr = L.build_global_stringptr "UP" ("test_str_ptr") new_builder in *)
         let cond_str_ptr = L.build_global_stringptr condition ("condition_str_ptr") event_builder in
         let elem_name_str_ptr = L.build_global_stringptr first_elem (first_elem ^ "_str_ptr") event_builder in
   
@@ -282,8 +278,7 @@ let translate (globals, funcs, events, elements, world) =
       
         let merge_builder = L.builder_at_end context merge_bb in
         ignore (L.build_ret_void merge_builder);
-      
-
+        
         ignore (L.build_call add_event_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
 
         builder
@@ -322,10 +317,8 @@ let translate (globals, funcs, events, elements, world) =
 
     | A.For (e1, e2, e3, body) -> stmt builder main_func map
       ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-
-    
+   
   in
-
 
   (* Declare each global variable; remember its value in a map *)
   let global_vars_map =

@@ -4,12 +4,10 @@ LDFLAGS = lSDL2
 H_DIR = header_files
 INC_DIR = include
 LIB_DIR = /usr/local/lib
-CFLAGS = -Wall `pkg-config --cflags --libs glib-2.0`
+CFLAGS = -Wall -w `pkg-config --cflags --libs glib-2.0`
 
 .PHONY : all
 all : craft.native main.o #link c here?
-
-
 
 .PHONY : craft.native
 craft.native :

@@ -1,0 +1,15 @@
+
+element paddle2{
+    size = (60, 5);
+    color = "00ff00";
+    direction = 0;
+    speed = false;  # can only assign integers
+}
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+
+}
