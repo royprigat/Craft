@@ -6,43 +6,23 @@
 #include  <sys/types.h>
 #include <math.h>
 
-bool shouldStart = true;
-
 //REF: http://lazyfoo.net/tutorials/SDL/04_key_presses/index.php
 //REF: https://wiki.libsdl.org
 //REF: http://gamedevgeek.com/tutorials/moving-sprites-with-sdl/
-//Screen dimension constants
-
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
-    
-//The surface contained by the window
-SDL_Surface *gScreenSurface = NULL;
-
-struct world *w;
-
-int refresh = 0;
-// SDL_Surface *player = NULL;
-
-//The image we will load and show on the screen
-// SDL_Surface* gHelloWorld = NULL;
-
-// SDL_Renderer* renderer = NULL;
 
 int speed = 2;
 
+// Changes direction for elastic collisions of the element passed depending on the axis of collision.
 void reflection(struct element *e, int axis){
-    // printf("reflection axis %d", axis);
     if(axis == 2){
-        // printf("%d %d \n", e->direction, 180 - e->direction);
         e->direction = 180 - e->direction;
     }else{
-        // printf("%d %d \n", e->direction, 360 - e->direction);
         e->direction = 360 - e->direction;
     }
     refresh = 1;
 }
 
+// Returns 0 if 2 elements do not collide. Returns 1 ro 2 depending on the axis that the elements collide on if they do.
 int doElementsCollide(struct element *e1, struct element *e2){
 
     // printf("%s %s \n", e1->name, e2->name);
@@ -52,33 +32,32 @@ int doElementsCollide(struct element *e1, struct element *e2){
        e1->position.right + e1->size.right < e2->position.right){
         return 0;
     }
+    
+    // Calls reflection for elastic collisions in case of collision
     if((e1->position.left < e2->position.left + e2->size.left + 3)&&
         (e1->position.left +3 > e2->position.left + e2->size.left)){
-        // printf("trip1\n");
-        reflection(e1, 2);
-        return 2; 
+            reflection(e1, 2);
+            return 2; 
     }
     if((e1->position.left + e1->size.left + 3 > e2->position.left)&&
         (e1->position.left + e1->size.left < e2->position.left+3)){
-        // printf("trip2\n");
-        reflection(e1, 2);
-        return 2; 
+            reflection(e1, 2);
+            return 2; 
     }
     if((e1->position.right < e2->position.right + e2->size.right + 3) &&
        (e1->position.right +3 > e2->position.right + e2->size.right)){
-        // printf("trip3\n");
-        reflection(e1, 1);
-        return 1;
+            reflection(e1, 1);
+            return 1;
     }
     if((e1->position.right + e1->size.right + 3 > e2->position.right) &&
         (e1->position.right + e1->size.right < e2->position.right + 3)){
-            // printf("trip4\n");
             reflection(e1, 1);
             return 1;
         }
     
 }
 
+// Refresh object depending on inherent speed and direction specified in the struct
 void moveSpeed(struct element *e){
 
     double radians = M_PI * (e->direction/180.0);
@@ -87,24 +66,17 @@ void moveSpeed(struct element *e){
 
     GSList* iterator = NULL;
     
-    for (iterator = element_list; iterator; iterator = iterator->next)
-    {
+    // Loop through the elements to check if the future space is already occupied by something 
+    for (iterator = element_list; iterator; iterator = iterator->next){
         struct element *temp = (struct element*)iterator->data;
         if(strcmp(e->name, temp->name)==0){
             continue;
         }
-        // printf("%d  %f\n", e->direction, radians);
         if(doElementsCollide(e, temp)){
-        // printf("COLLISION\n");
             e->position.left = e->position.left - round(e->speed*cos(radians));
             e->position.right = e->position.right - round(e->speed*sin(radians));
         } 
     
-        if(doElementsCollide(e, temp)){
-        // printf("COLLISION\n");
-            e->position.left = e->position.left - round(e->speed*cos(radians));
-            e->position.right = e->position.right - round(e->speed*sin(radians));
-        } 
         refresh = 1;
     }   
 }
@@ -120,7 +92,6 @@ void moveUp(struct element *e){
                 continue;
             }
             if(doElementsCollide(e, (struct element*)iterator->data)){
-            // printf("COLLISION\n");
                 e->position.right = e->position.right - speed;
                 return;
             }
@@ -139,7 +110,6 @@ void moveDown(struct element *e){
                 continue;
             }
             if(doElementsCollide(e, (struct element*)iterator->data)){
-            // printf("COLLISION\n");
                 e->position.right = e->position.right + speed;
                 return;
             }
@@ -158,7 +128,6 @@ void moveLeft(struct element *e){
                 continue;
             }
             if(doElementsCollide(e, (struct element*)iterator->data)){
-            // printf("COLLISION\n");
                 e->position.left = e->position.left + speed;
                 return;
             }
@@ -177,7 +146,6 @@ void moveRight(struct element *e){
                 continue;
             }
             if(doElementsCollide(e, (struct element*)iterator->data)){
-            // printf("COLLISION\n");
                 e->position.left = e->position.left - speed;
                 return;
             }
@@ -185,17 +153,15 @@ void moveRight(struct element *e){
     }
 }
 
-
-
 void move(char *name, char *direction){
 
     struct element *e = NULL;
     GSList* iterator = NULL;
-        // render_element(&ele);
+        
     for (iterator = element_list; iterator; iterator = iterator->next)
     {
         e = (struct element*)iterator->data;
-        // printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
+
         if(strcmp(e->name, name)!=0){
             e = NULL;
         }else{
@@ -220,21 +186,14 @@ void move(char *name, char *direction){
 
 void (*event_fn)();
 
+// Adding the pointer for the callback function for an event to the event pointer list
 void addEventfn(void (*a)){
-    // printf("Adding event fn");
     fn_list = g_slist_append(fn_list, a);
 }
 
-void test_print(){
-    printf("%s", "Roses are red\n Violets are blue\n The learning curve is steep\n Screw you");
-}
-
-void startRender(){
-    shouldStart = true;
-}
+// returns the state of the key associated with the string passed to it
 int isPressed(char *key){
     int keyId;
-    // printf("%s\n",key );
 
     if (strcmp(key, "DOWN") == 0){
         keyId = 82;
@@ -258,10 +217,11 @@ int isPressed(char *key){
     if(keystate == NULL){
         return 0;
     }
-    // printf("Returning value of keypress:%s==%d", key, keystate[keyId]);
+
     return keystate[keyId];
 }
 
+// draw an element on the the screen
 void render_element(struct element *e) {
     SDL_Rect rect;
     rect.x = e->position.left;
@@ -270,56 +230,43 @@ void render_element(struct element *e) {
     rect.h = e->size.right;
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
+// intialiaze the world 
 void init_world(struct world *temp){
-    // w = malloc (sizeof (struct world));
     w=temp;
-    // w->list = NULL;
     SCREEN_WIDTH = w->size.left;
     SCREEN_HEIGHT = w->size.right;
 }
+
+// add element to main element list
 void add_element(struct element *e){
-    // printf( "add_element called in C\n" );
     element_list = g_slist_append(element_list, e);
 }
 
-// void delete_element(struct element *e){
-//     element_list = g_list_remove(element_list. e);
-//     free(e->el_color);
-//     free(e);
-// }
+// refresh the world
 void refresh_world(){
     SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
 }
 
+// delete and alament from the main list
 struct element* delete_element(char *name){
-    printf("Before %d", g_slist_length(element_list));
+   
     struct element *e = NULL;
     GSList* iterator = NULL;
-        // render_element(&ele);
+      
     for (iterator = element_list; iterator; iterator = iterator->next)
     {
         e = (struct element*)iterator->data;
-        printf("\nELEMENT FOUND%s %s \n", e->name, e->el_color);
         if(strcmp(e->name, name)!=0){
-            printf("Before test1\n");
             e = NULL;
         }else{
-            printf("Before test2\n");
             break;
         }
-        printf("Before test3\n");
     }
-    printf("Before test4\n");
+
     if(e !=NULL){
-        printf("Before test5\n");
         element_list = g_slist_remove(element_list, iterator->data);
-        printf("After%d", g_slist_length(element_list));
-        printf("%s", e->el_color);
         refresh = 1;
-        printf("Before return e in del. elem.\n");
         return e;
-        // free(e->el_color);
-        // free(e);
     }
     return NULL;
     
@@ -327,9 +274,6 @@ struct element* delete_element(char *name){
 
 bool init()
 {   
-    // struct tuple s = {400,500};
-    // init_world(s, "FFFFFF");
-    // GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
     //Initialization flag
     bool success = true;
 
@@ -353,14 +297,13 @@ bool init()
         {
             //Get window surface
             gScreenSurface = SDL_GetWindowSurface( gWindow );
-            // renderer =  SDL_CreateRenderer( gWindow, -1, 0);
-            // SDL_RenderSetLogicalSize( renderer, SCREEN_WIDTH, SCREEN_HEIGHT );
         }
     }
 
     return success;
 }
 
+// Placeholder function to insert game logos, graphics, startup screens etc
 bool loadMedia()
 {
     //Loading success flag
@@ -373,16 +316,12 @@ bool loadMedia()
     //     printf( "Unable to load image %s! SDL Error: %s\n", "02_getting_an_image_on_the_screen/hello_world.bmp", SDL_GetError() );
     //     success = false;
     // }
-
     return success;
 }
 
+// Close and destroy the window
 void close()
 {
-    // //Deallocate surface
-    // SDL_FreeSurface( gHelloWorld );
-    // gHelloWorld = NULL;
-
     //Destroy window
     printf("Exiting!!");
     SDL_DestroyWindow( gWindow );
@@ -394,7 +333,6 @@ void close()
 
 int world( )
 {
-    // testfn();
     //Start up SDL and create window
     if( !init() )
     {
@@ -409,21 +347,14 @@ int world( )
         }
         else
         {
-            //Apply the image
-            // SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
+            //Make the world of the size and backgorund
             SDL_FillRect(gScreenSurface, NULL, (int)strtol(w->back_color, NULL, 16));
             // Update the surface
             SDL_UpdateWindowSurface( gWindow );
-
             //Wait two seconds
             SDL_Delay( 2000 );
         }
 
-        // struct element ele = {20, 20, 10, 10, "aabbcc", 1, 1};
-        // struct element ele1 = {20, 20, 70, 70, "bbbbbb", 1, 1};
-        // element_list = g_slist_append(element_list, &ele);
-        // element_list = g_slist_append(element_list, &ele1);
-       
         //Event handler
         SDL_Event e;
 
@@ -454,61 +385,44 @@ int world( )
             }
 
             GSList* iterator = NULL;
-            // render_element(&ele);
+            // Iterate over the elements, update the positions of elements with defined speeds
             for (iterator = element_list; iterator; iterator = iterator->next)
             {
-                moveSpeed((struct element*)iterator->data);
                 render_element((struct element*)iterator->data);
             }
-        
+            
+            // Iterate over the elements, re-render them.
+            iterator = NULL;
+            for (iterator = element_list; iterator; iterator = iterator->next)
+            {   
+                moveSpeed((struct element*)iterator->data);
+            }
+
+            // Show changes on the window
             SDL_UpdateWindowSurface( gWindow );
 
+            // Update the keymap
             keystate = SDL_GetKeyboardState(NULL);
 
             iterator = NULL;
 
+            // Iterate over and call the callback functions
             for (iterator = fn_list; iterator; iterator = iterator->next)
             {
                 void (*temp)() = (void *)iterator->data;
-                // printf("%s", "Entering ITERATOR");
                 temp();
             }
 
+            // If the world needs to be refreshed, clean the slate
             if(refresh){
                 refresh_world();
                 refresh = 0;
             }
-            SDL_Delay(5);
 
-            // printf("%d ", SDLK_LEFT);
+            // Delay to slow down the loop to a reasonable level
+            SDL_Delay(5);
         }
     }
 
-    // Free resources and close SDL
-    
-
     return 0;
 }
-
-// int main(int argc, char ** argv){
-//         struct element ele = {"one", {20, 20}, {10, 10}, "aabbcc", 1, 1};
-//         struct element ele1 = {"two", 20, 20, 70, 70, "bbbbbb", 1, 1};
-//         struct element ele2 = {"three", 20, 20, 70, 70, "333333", 1, 1};
-        
-//         struct world t = {400,400, "aaaaaa"};
-//         init_world(&t);
-//         add_element(&ele);
-//         add_element(&ele1);
-//         // world();
-//         // if(fork()==0){
-//         //     world();
-//         // }
-//         // printf("BACK to main\n");
-//         // SDL_Delay(10000);
-//         delete_element("one");
-//         add_element(&ele2);
-//         world();
-        
-
-//     return 0;
-// }
