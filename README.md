@@ -1,5 +1,5 @@
 
-CRAFT: 2D Game Design
+# CRAFT: Programming language for 2D Game Design
 
 
 The CRAFT language needs to have the OCaml llvm library, which is most easily installed through opam.
