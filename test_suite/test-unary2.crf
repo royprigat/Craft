@@ -1,0 +1,8 @@
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+    bool x = true;
+    x = !x;
+}
