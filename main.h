@@ -6,8 +6,10 @@ int SCREEN_HEIGHT = 480;
 
 const Uint8 *keystate = NULL;
 
+// Element list
 GSList* element_list;
 
+// List of callback functions for events
 GSList* fn_list = NULL;
 
 //Starts up SDL and creates window
@@ -18,7 +20,17 @@ bool loadMedia();
 
 int isPressed(char* key);
 
-// bool isCollision(struct element *e1, char* e2, )
+//The window we'll be rendering to
+SDL_Window* gWindow = NULL;
+    
+//The surface contained by the window
+SDL_Surface *gScreenSurface = NULL;
+
+// Flag to know when to refresh window
+int refresh = 0;
+
+// The world struct
+struct world *w;
 
 //Frees media and shuts down SDL
 void close();
