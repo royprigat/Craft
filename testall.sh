@@ -92,11 +92,8 @@ Check() {
     generatedfiles=""
 
     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
-    Run "$CRAFT" "$1" ">" "${basename}.ll" &&
-    Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
-    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "printbig.o" &&
-    Run "./${basename}.exe" > "${basename}.out" &&
-    Run "./${basename}.exe" > "${basename}.out" &&
+    Run "$CRAFT" "$1" &&
+
     # Compare ${basename}.out ${reffile}.out ${basename}.diff
 
     # Report the status and clean up the generated files

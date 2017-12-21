@@ -1,0 +1,9 @@
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+    int x = 3;
+    color c = "aaaaaa";
+    x = c; # cant assign a color to int
+}
