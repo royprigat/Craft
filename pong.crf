@@ -90,5 +90,4 @@ world {
     add_event(move_left);
     add_event(s_move_left);
     add_event(s_move_right);
-
 }

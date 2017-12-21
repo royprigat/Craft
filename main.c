@@ -54,7 +54,8 @@ int doElementsCollide(struct element *e1, struct element *e2){
             reflection(e1, 1);
             return 1;
         }
-    
+
+    return 0;
 }
 
 // Refresh object depending on inherent speed and direction specified in the struct
@@ -230,6 +231,7 @@ void render_element(struct element *e) {
     rect.h = e->size.right;
     SDL_FillRect(gScreenSurface, &rect, (int)strtol(e->el_color, NULL, 16));
 }
+
 // intialiaze the world 
 void init_world(struct world *temp){
     w=temp;
