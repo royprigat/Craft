@@ -15,5 +15,6 @@ world {
         size = (500,500);
         color = "f4f441";
     }
+    element player = new player(100,100);
     add_event(move);
 }
