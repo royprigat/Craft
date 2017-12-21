@@ -106,7 +106,6 @@ let translate (globals, funcs, events, elements, world) =
     | A.Id s -> L.build_load (StringMap.find s map) s builder
 
     | A.Binop (e1, op, e2) ->
-      print_string ("test_binop");
       let e1' = expr builder map e1
       and e2' = expr builder map e2 in
       (match op with
@@ -149,9 +148,7 @@ let translate (globals, funcs, events, elements, world) =
       L.build_load pr_ptr "p" builder
 
     | A.Assign (e1, e2) ->
-      print_string ("test_assign");
       let e' = expr builder map e2 in (* should bring back calculated value *)
-      print_string ("test10");
 
       (match e1 with
         |A.Id (s) -> L.build_store e' (StringMap.find s map) builder
@@ -159,13 +156,11 @@ let translate (globals, funcs, events, elements, world) =
           (match s2 with
             | "pos" ->
               (match s3 with 
-                | "x" ->  print_string ("test5");
-                          let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                | "x" ->   let elem_ptr = StringMap.find (s1 ^ "_element") map in
                             let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem5_pos_ptr") builder in 
                               let x_ptr = L.build_struct_gep pos_ptr 0 ("x_ptr") builder in
                                 L.build_store e' x_ptr builder;
-                | "y" ->  print_string ("test6");
-                          let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                | "y" ->   let elem_ptr = StringMap.find (s1 ^ "_element") map in
                             let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem6_pos_ptr") builder in 
                               let y_ptr = L.build_struct_gep pos_ptr 1 ("y_ptr") builder in
                                 L.build_store e' y_ptr builder;
@@ -173,13 +168,11 @@ let translate (globals, funcs, events, elements, world) =
               )
             | "size" -> 
               (match s3 with
-                  | "x" ->  print_string ("test7");
-                            let elem_ptr = StringMap.find (s1 ^ "_element") map in
-                              let size_ptr = L.build_struct_gep elem_ptr 2 ("elem7_size_ptr") builder in 
-                                let x_ptr = L.build_struct_gep size_ptr 0 ("x_ptr") builder in
-                                  L.build_store e' x_ptr builder;
-                  | "y" -> print_string ("test8");
-                          let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                  | "x" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
+                            let size_ptr = L.build_struct_gep elem_ptr 2 ("elem7_size_ptr") builder in 
+                              let x_ptr = L.build_struct_gep size_ptr 0 ("x_ptr") builder in
+                                L.build_store e' x_ptr builder;
+                  | "y" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
                             let size_ptr = L.build_struct_gep elem_ptr 2 ("elem8_size_ptr") builder in 
                               let y_ptr = L.build_struct_gep size_ptr 1 ("y_ptr") builder in
                                 L.build_store e' y_ptr builder;
@@ -194,16 +187,12 @@ let translate (globals, funcs, events, elements, world) =
       (match s3 with
         | "x" ->
           (match s2 with 
-            | "pos" -> print_string ("test1"); 
-                      let elem_ptr = StringMap.find (s1 ^ "_element") map in
+            | "pos" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
                         let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem1_pos_ptr") builder in 
                           let x_ptr = L.build_struct_gep pos_ptr 0 ("x_ptr") builder in
-                              L.build_load x_ptr "x" builder (*return the x value in llvm type*)
+                            L.build_load x_ptr "x" builder (*return the x value in llvm type*)
 
-            | "size" -> print_string ("test2"); 
-                        print_string (s1^"_element");
-                        print_string ("tessssttttt");
-                        let elem_ptr = StringMap.find (s1 ^ "_element") map in
+            | "size" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
                           let size_ptr = L.build_struct_gep elem_ptr 2 ("elem2_size_ptr") builder in 
                             let x_ptr = L.build_struct_gep size_ptr 0 ("x_ptr") builder in
                               L.build_load x_ptr "x" builder 
@@ -211,13 +200,11 @@ let translate (globals, funcs, events, elements, world) =
           ) 
         | "y" ->
           (match s2 with 
-            | "pos" -> print_string ("test3"); 
-                      let elem_ptr = StringMap.find (s1 ^ "_element") map in
+            | "pos" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
                         let pos_ptr = L.build_struct_gep elem_ptr 2 ("elem3_pos_ptr") builder in 
                           let y_ptr = L.build_struct_gep pos_ptr 1 ("y_ptr") builder in
                             L.build_load y_ptr "y" builder (*return the y value in llvm type*)
-            | "size" -> print_string ("test4"); 
-                        let elem_ptr = StringMap.find (s1 ^ "_element") map in
+            | "size" -> let elem_ptr = StringMap.find (s1 ^ "_element") map in
                           let size_ptr = L.build_struct_gep elem_ptr 2 ("elem4_size_ptr") builder in 
                             let y_ptr = L.build_struct_gep size_ptr 1 ("y_ptr") builder in
                               L.build_load y_ptr "y" builder 
@@ -227,7 +214,6 @@ let translate (globals, funcs, events, elements, world) =
       )
     | A.CAccess (_,_) -> L.const_int i32_t 0 (*to stop warning*)
     | A.Call (f, act) ->
-      print_string("expr_Call\n");
       let func = StringMap.find f map in
       let actuals = List.rev (List.map (expr builder map) (List.rev act)) in
       L.build_call func (Array.of_list actuals) f builder
@@ -244,7 +230,7 @@ let translate (globals, funcs, events, elements, world) =
   (* Build the code for the given statement; return the builder for the statement's successor *)
   let rec stmt builder main_func map = function
         A.Block sl -> List.fold_left (fun builder s -> stmt builder main_func map s) builder sl
-      | A.Expr e -> print_string("test12"); ignore (expr builder map e); builder
+      | A.Expr e -> ignore (expr builder map e); builder
       | A.Return e -> ignore(L.build_ret (expr builder map e) builder); builder
       | A.New elem -> 
         let (e_typ, _, e_pos) = elem in
@@ -263,8 +249,7 @@ let translate (globals, funcs, events, elements, world) =
         builder
 
       | A.ECall ("add_event", event_name) -> 
-        print_string ("start_e_call\n");
-        
+
         let event = StringMap.find (event_name ^ "_event") events_helper_map in
         
         let condition = string_of_expr event.A.condition in (*condition is now "UP"*)
@@ -300,7 +285,6 @@ let translate (globals, funcs, events, elements, world) =
       
 
         ignore (L.build_call add_event_func [|event_func|] "" builder); (*giving C the pointer and it will call the func pointer*)
-        print_string ("end_e_call\n");
 
         builder
 
@@ -322,7 +306,6 @@ let translate (globals, funcs, events, elements, world) =
         L.builder_at_end context merge_bb
       
     | A.While (predicate, body) ->
-        print_string("stmt_while");
         let pred_bb = L.append_block context "while" main_func in
         ignore (L.build_br pred_bb builder);
 
@@ -462,7 +445,6 @@ in
     (* World locals*)
     let map = 
       let add_local map (t,s,e) =
-        print_string("test_add_local");
         let e' = expr builder map e in
         let local_var = L.build_alloca (ltype_of_typ t) s builder in
             ignore (L.build_store e' local_var builder);
