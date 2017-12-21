@@ -1,0 +1,10 @@
+
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+    # Undefined player element
+    element player = new element(20,20);
+}

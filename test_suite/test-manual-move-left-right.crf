@@ -1,0 +1,31 @@
+event move_right(paddle1) {
+    condition = key_press("RIGHT");
+    action {
+      paddle1.pos.x = paddle1.pos.x + 5;
+    }
+}
+
+event move_left(paddle1) {
+    condition = key_press("LEFT");
+    action {
+      paddle1.pos.x = paddle1.pos.x - 5;
+    }
+}
+
+element paddle1{
+    size = (60, 5);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+    # manually check left/right movement
+    element paddle1 = new paddle1(250,560);
+    add_event(move_right);
+    add_event(move_left);
+}

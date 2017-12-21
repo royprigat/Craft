@@ -1,0 +1,31 @@
+event move_up(paddle1) {
+    condition = key_press("UP");
+    action {
+      paddle1.pos.x = paddle1.pos.x + 5;
+    }
+}
+
+event move_down(paddle1) {
+    condition = key_press("DOWN");
+    action {
+      paddle1.pos.x = paddle1.pos.x - 5;
+    }
+}
+
+element paddle1{
+    size = (60, 5);
+    color = "00ff00";
+    direction = 0;
+    speed = 0;
+}
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+    # manually check up/down movement
+    element paddle1 = new paddle1(250,560);
+    add_event(move_up);
+    add_event(move_down);
+}

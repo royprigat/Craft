@@ -1,0 +1,19 @@
+event move(player) {
+    condition = key_press("UP");
+    action {
+        player.pos.x = 5;
+    }
+}
+
+element player {
+    size = (10,10);
+    color = "ffffff";
+}
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+    add_event(move);
+}

@@ -1,0 +1,6 @@
+world {
+    properties {
+        size = (500,500);  # 500 x 500 window size
+        color = "48f442";  # Light green
+    }
+}
