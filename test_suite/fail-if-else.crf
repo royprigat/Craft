@@ -1,0 +1,12 @@
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+    # x is not defined
+    if (x = 3) {
+        x = 4;
+    } else {
+        x = 5;
+    }
+}

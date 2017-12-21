@@ -1,0 +1,12 @@
+def int func(int x,int y) {
+    x = x + y;
+    y = x / y;
+    return x;
+}
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+}

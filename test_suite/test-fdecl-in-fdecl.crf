@@ -1,0 +1,14 @@
+def int foo(int x) {
+    return x;
+}
+
+def int foo1(int y) {
+    return foo(y);
+}
+
+world {
+  properties {
+    size = (20,20);
+    color = "ffffff";
+  }
+}

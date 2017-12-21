@@ -1,0 +1,10 @@
+int x = 3;
+int y = x + 3;
+int z = x + y;
+
+world {
+    properties {
+        size = (500,500);
+        color = "f4f441";
+    }
+}
