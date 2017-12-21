@@ -21,13 +21,13 @@ let _ =
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
   let lexbuf = Lexing.from_channel !channel in
   let ast = Parser.program Scanner.token lexbuf in
-  Semant.check ast;
+  (* Semant.check ast; *)
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
   | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate ast))
   | Compile -> let m = Codegen.translate ast in
     print_string ("entering compile");
-    (* Llvm_analysis.assert_valid_module m; *)
+    Llvm_analysis.assert_valid_module m;
     (* print_string (Llvm.string_of_llmodule m) *)
     let arg_index =
       if Array.length Sys.argv == 2 then
