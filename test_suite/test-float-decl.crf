@@ -1,0 +1,7 @@
+world {
+  properties {
+    size = (100,100);
+    color = "ffffff";
+  }
+  float f = 3.4;
+}

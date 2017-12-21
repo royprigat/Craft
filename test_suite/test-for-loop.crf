@@ -3,8 +3,9 @@ world {
         size = (500,200);
         color = "f4f441";
     }
-    # Unable to resolve x
-    for (x ; x<3 ; x++) { 
+    int x = 3;
+    int y = 4;
+    for (x ; x<4; x = x + 1) {
         y = y + 1;
     }
 }

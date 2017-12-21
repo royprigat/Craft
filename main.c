@@ -10,7 +10,7 @@
 //REF: https://wiki.libsdl.org
 //REF: http://gamedevgeek.com/tutorials/moving-sprites-with-sdl/
 
-int speed = 2;
+int speed = 3;
 
 // Changes direction for elastic collisions of the element passed depending on the axis of collision.
 void reflection(struct element *e, int axis){

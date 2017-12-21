@@ -1,0 +1,13 @@
+int global_int = 3;
+int global_bool = true;
+int global_float = 3.4;
+int global_color = "aaaaaa";
+int global_pair = (3,3);
+
+
+world {
+    properties {
+        size = (500,200);
+        color = "f4f441";
+    }
+}

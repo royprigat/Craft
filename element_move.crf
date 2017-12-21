@@ -1,17 +1,3 @@
-#event move_up(player1) {
-#    condition = key_press("UP");
-#    action {
-#      player1.pos.x = 400;
-#    }
-#}
-
-#event move_down(player1) {
-#    condition = key_press("DOWN");
-#    action {
-#      player1.pos.x = 400;
-#    }
-#}
-
 event move_right(paddle1) {
     condition = key_press("RIGHT");
     action {
@@ -97,13 +83,9 @@ world {
 
     element player1 = new player1(100,100);
     element wall_left = new wall_left(0,0);
-    #element wall_up = new wall_up(0,0);
     element wall_right = new wall_right(585,0);
-    #element wall_down = new wall_down(0,580);
     element paddle1 = new paddle1(60,560);
     element paddle2 = new paddle2(60,40);
-    #add_event(move_up);
-    #add_event(move_down);
     add_event(move_right);
     add_event(move_left);
     add_event(s_move_left);

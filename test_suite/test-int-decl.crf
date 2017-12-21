@@ -1,0 +1,9 @@
+world {
+  properties {
+    size = (100,100);
+    color = "ffffff";
+  }
+
+  int x = 5; # Local var declaration in world
+
+}

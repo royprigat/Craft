@@ -77,38 +77,41 @@ RunFail() {
     return 0
 }
 
-# Check() {
-#     error=0
-#     basename=`echo $1 | sed 's/.*\\///
-#                              s/.crf//'`
-#     reffile=`echo $1 | sed 's/.crf$//'`
-#     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
+Check() {
+    error=0
+    basename=`echo $1 | sed 's/.*\\///
+                             s/.crf//'`
+    reffile=`echo $1 | sed 's/.crf$//'`
+    basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
-#     echo -n "$basename..."
+    echo -n "$basename..."
 
-#     echo 1>&2
-#     echo "###### Testing $basename" 1>&2
+    echo 1>&2
+    echo "###### Testing $basename" 1>&2
 
-#     generatedfiles=""
+    generatedfiles=""
 
-#     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
-#     Run "$CRAFT" "$1" ">" "${basename}.ll" &&
-#     Run "./${basename}.exe" > "${basename}.out" &&
-#     Compare ${basename}.out ${reffile}.out ${basename}.diff
+    generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
+    Run "$CRAFT" "$1" ">" "${basename}.ll" &&
+    Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
+    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "printbig.o" &&
+    Run "./${basename}.exe" > "${basename}.out" &&
+    Run "./${basename}.exe" > "${basename}.out" &&
+    # Compare ${basename}.out ${reffile}.out ${basename}.diff
 
-#     # Report the status and clean up the generated files
+    # Report the status and clean up the generated files
 
-#     if [ $error -eq 0 ] ; then
-# 	if [ $keep -eq 0 ] ; then
-# 	    rm -f $generatedfiles
-# 	fi
-# 	echo "OK"
-# 	echo "###### SUCCESS" 1>&2
-#     else
-# 	echo "###### FAILED" 1>&2
-# 	globalerror=$error
-#     fi
-# }
+    if [ $error -eq 0 ] ; then
+	if [ $keep -eq 0 ] ; then
+	    rm -f $generatedfiles
+	fi
+	echo "OK"
+	echo "###### SUCCESS" 1>&2
+    else
+	echo "###### FAILED" 1>&2
+	globalerror=$error
+    fi
+}
 
 CheckFail() {
     error=0
@@ -132,7 +135,7 @@ CheckFail() {
 
     if [ $error -eq 0 ] ; then
 	if [ $keep -eq 0 ] ; then
-	    #rm -f $generatedfiles
+	    rm -f $generatedfiles
 	fi
 	echo "OK"
 	echo "###### SUCCESS" 1>&2
@@ -169,8 +172,7 @@ if [ $# -ge 1 ]
 then
     files=$@
 else
-    #files="tests/test-*.crf tests/fail-*.crf"
-    files="test_suite/fail-*.crf"
+    files="test_suite/test-*.crf test_suite/fail-*.crf"
 
 fi
 
