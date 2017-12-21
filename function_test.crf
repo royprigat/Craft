@@ -1,0 +1,22 @@
+def int add(int a, int b)
+{
+	return a + b;
+}
+
+element square {
+    size = (50,50);
+    color = "aaaaaa";
+}
+
+world {
+    properties {
+        size = (500,500);
+        color = "42f4eb";
+    }
+    int x = 0;
+    x = add(20,20);
+
+    element square= new square(x,x);
+
+
+}
