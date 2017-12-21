@@ -1,0 +1,12 @@
+int global = 3;
+
+def int foo(int x) {
+  return global;
+}
+
+world {
+  properties {
+    size = (20,20);
+    color = "ffffff";
+  }
+}

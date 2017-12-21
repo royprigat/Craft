@@ -4,7 +4,7 @@ world {
         color = "f4f441";
     }
     # Unable to resolve x
-    for (x ; x<3 ; x++) { 
+    for (x ; x<3 ; x = x + 1) { 
         y = y + 1;
     }
 }
