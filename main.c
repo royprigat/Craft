@@ -29,7 +29,7 @@ int refresh = 0;
 
 // SDL_Renderer* renderer = NULL;
 
-int speed = 2;
+int speed = 3;
 
 void reflection(struct element *e, int axis){
     // printf("reflection axis %d", axis);

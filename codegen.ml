@@ -337,7 +337,7 @@ let translate (globals, funcs, events, elements, world) =
         ignore(L.build_call move_func [|elem_name_str_ptr;cond_str_ptr|] "" is_pressed_builder);
 
         (* ignore(stmt is_pressed_builder map first_stmt); *)
-        (*two big issues. pos is not added here, it's done in NEW. *)
+        (* issues pos is not added here, it's done in NEW. *)
         (* biggest problem is i do not access an the latest updated values just rerendeing initial pos and trying to update that.. *)
         (* ignore (L.build_call add_e [|elem_ptr|] "" is_pressed_builder); *)
       
