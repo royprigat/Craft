@@ -126,6 +126,7 @@ CheckFail() {
 
     generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
     RunFail "$CRAFT" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
+    Run "$CRAFT" "$1" &&
     # Compare ${basename}.err ${reffile}.err ${basename}.diff
 
     # Report the status and clean up the generated files
