@@ -1,0 +1,12 @@
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+    color c = "aaaaaa";
+    color b = "aaaaaa";
+    if (c == b) {
+        c = "ffffff";
+    }
+}

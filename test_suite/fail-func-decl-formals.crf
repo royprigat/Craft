@@ -1,0 +1,12 @@
+# missing arg types
+def int foo(x,y) {
+    return y;
+}
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+
+}

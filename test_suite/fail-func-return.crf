@@ -1,0 +1,11 @@
+# incorrect return type
+def int foo(int x, bool y) {
+    return y;
+}
+
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+}

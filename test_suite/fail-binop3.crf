@@ -1,0 +1,10 @@
+world {
+    properties {
+        size = (600,600);
+        color = "000000";
+    }
+    pair p = (3,3);
+    pair p2 = (4,4);
+    pair p3 = p / p2;  # cant divide pairs
+
+}
