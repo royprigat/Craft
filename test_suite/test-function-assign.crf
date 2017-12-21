@@ -17,6 +17,4 @@ world {
     x = add(20,20);
 
     element square= new square(x,x);
-
-
 }

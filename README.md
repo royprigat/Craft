@@ -170,10 +170,9 @@ To run and test:
 $ make
 
 $ ./testall.sh
-test-arith1...OK
-test-arith2...OK
-test-arith3...OK
-test-fib...OK
+test-while...OK
+test-pong...OK
+test-new-stmt...OK
 ...
-fail-while1...OK
-fail-while2...OK
+fail-binop...OK
+fail-binop2...OK
